@@ -1,0 +1,685 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		24B67F8529D1D04900FFB500 /* TurfWatch2 Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 24B67F8429D1D04900FFB500 /* TurfWatch2 Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		24B67F8A29D1D04900FFB500 /* TurfWatch2App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24B67F8929D1D04900FFB500 /* TurfWatch2App.swift */; };
+		24B67F8C29D1D04900FFB500 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24B67F8B29D1D04900FFB500 /* ContentView.swift */; };
+		24B67F8E29D1D04D00FFB500 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 24B67F8D29D1D04D00FFB500 /* Assets.xcassets */; };
+		24B67F9129D1D04D00FFB500 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 24B67F9029D1D04D00FFB500 /* Preview Assets.xcassets */; };
+		24B67F9B29D1D04D00FFB500 /* TurfWatch2_Watch_AppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24B67F9A29D1D04D00FFB500 /* TurfWatch2_Watch_AppTests.swift */; };
+		24B67FA529D1D04D00FFB500 /* TurfWatch2_Watch_AppUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24B67FA429D1D04D00FFB500 /* TurfWatch2_Watch_AppUITests.swift */; };
+		24B67FA729D1D04D00FFB500 /* TurfWatch2_Watch_AppUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24B67FA629D1D04D00FFB500 /* TurfWatch2_Watch_AppUITestsLaunchTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		24B67F8629D1D04900FFB500 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 24B67F7829D1D04900FFB500 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 24B67F8329D1D04900FFB500;
+			remoteInfo = "TurfWatch2 Watch App";
+		};
+		24B67F9729D1D04D00FFB500 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 24B67F7829D1D04900FFB500 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 24B67F8329D1D04900FFB500;
+			remoteInfo = "TurfWatch2 Watch App";
+		};
+		24B67FA129D1D04D00FFB500 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 24B67F7829D1D04900FFB500 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 24B67F8329D1D04900FFB500;
+			remoteInfo = "TurfWatch2 Watch App";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		24B67FAD29D1D04D00FFB500 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				24B67F8529D1D04900FFB500 /* TurfWatch2 Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		24B67F7E29D1D04900FFB500 /* TurfWatch2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TurfWatch2.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		24B67F8429D1D04900FFB500 /* TurfWatch2 Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TurfWatch2 Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		24B67F8929D1D04900FFB500 /* TurfWatch2App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurfWatch2App.swift; sourceTree = "<group>"; };
+		24B67F8B29D1D04900FFB500 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		24B67F8D29D1D04D00FFB500 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		24B67F9029D1D04D00FFB500 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		24B67F9629D1D04D00FFB500 /* TurfWatch2 Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "TurfWatch2 Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		24B67F9A29D1D04D00FFB500 /* TurfWatch2_Watch_AppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurfWatch2_Watch_AppTests.swift; sourceTree = "<group>"; };
+		24B67FA029D1D04D00FFB500 /* TurfWatch2 Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "TurfWatch2 Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		24B67FA429D1D04D00FFB500 /* TurfWatch2_Watch_AppUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurfWatch2_Watch_AppUITests.swift; sourceTree = "<group>"; };
+		24B67FA629D1D04D00FFB500 /* TurfWatch2_Watch_AppUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurfWatch2_Watch_AppUITestsLaunchTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		24B67F8129D1D04900FFB500 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		24B67F9329D1D04D00FFB500 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		24B67F9D29D1D04D00FFB500 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		24B67F7729D1D04900FFB500 = {
+			isa = PBXGroup;
+			children = (
+				24B67F8829D1D04900FFB500 /* TurfWatch2 Watch App */,
+				24B67F9929D1D04D00FFB500 /* TurfWatch2 Watch AppTests */,
+				24B67FA329D1D04D00FFB500 /* TurfWatch2 Watch AppUITests */,
+				24B67F7F29D1D04900FFB500 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		24B67F7F29D1D04900FFB500 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				24B67F7E29D1D04900FFB500 /* TurfWatch2.app */,
+				24B67F8429D1D04900FFB500 /* TurfWatch2 Watch App.app */,
+				24B67F9629D1D04D00FFB500 /* TurfWatch2 Watch AppTests.xctest */,
+				24B67FA029D1D04D00FFB500 /* TurfWatch2 Watch AppUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		24B67F8829D1D04900FFB500 /* TurfWatch2 Watch App */ = {
+			isa = PBXGroup;
+			children = (
+				24B67F8929D1D04900FFB500 /* TurfWatch2App.swift */,
+				24B67F8B29D1D04900FFB500 /* ContentView.swift */,
+				24B67F8D29D1D04D00FFB500 /* Assets.xcassets */,
+				24B67F8F29D1D04D00FFB500 /* Preview Content */,
+			);
+			path = "TurfWatch2 Watch App";
+			sourceTree = "<group>";
+		};
+		24B67F8F29D1D04D00FFB500 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				24B67F9029D1D04D00FFB500 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		24B67F9929D1D04D00FFB500 /* TurfWatch2 Watch AppTests */ = {
+			isa = PBXGroup;
+			children = (
+				24B67F9A29D1D04D00FFB500 /* TurfWatch2_Watch_AppTests.swift */,
+			);
+			path = "TurfWatch2 Watch AppTests";
+			sourceTree = "<group>";
+		};
+		24B67FA329D1D04D00FFB500 /* TurfWatch2 Watch AppUITests */ = {
+			isa = PBXGroup;
+			children = (
+				24B67FA429D1D04D00FFB500 /* TurfWatch2_Watch_AppUITests.swift */,
+				24B67FA629D1D04D00FFB500 /* TurfWatch2_Watch_AppUITestsLaunchTests.swift */,
+			);
+			path = "TurfWatch2 Watch AppUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		24B67F7D29D1D04900FFB500 /* TurfWatch2 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 24B67FAE29D1D04D00FFB500 /* Build configuration list for PBXNativeTarget "TurfWatch2" */;
+			buildPhases = (
+				24B67F7C29D1D04900FFB500 /* Resources */,
+				24B67FAD29D1D04D00FFB500 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				24B67F8729D1D04900FFB500 /* PBXTargetDependency */,
+			);
+			name = TurfWatch2;
+			productName = TurfWatch2;
+			productReference = 24B67F7E29D1D04900FFB500 /* TurfWatch2.app */;
+			productType = "com.apple.product-type.application.watchapp2-container";
+		};
+		24B67F8329D1D04900FFB500 /* TurfWatch2 Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 24B67FAA29D1D04D00FFB500 /* Build configuration list for PBXNativeTarget "TurfWatch2 Watch App" */;
+			buildPhases = (
+				24B67F8029D1D04900FFB500 /* Sources */,
+				24B67F8129D1D04900FFB500 /* Frameworks */,
+				24B67F8229D1D04900FFB500 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "TurfWatch2 Watch App";
+			productName = "TurfWatch2 Watch App";
+			productReference = 24B67F8429D1D04900FFB500 /* TurfWatch2 Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		24B67F9529D1D04D00FFB500 /* TurfWatch2 Watch AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 24B67FB129D1D04D00FFB500 /* Build configuration list for PBXNativeTarget "TurfWatch2 Watch AppTests" */;
+			buildPhases = (
+				24B67F9229D1D04D00FFB500 /* Sources */,
+				24B67F9329D1D04D00FFB500 /* Frameworks */,
+				24B67F9429D1D04D00FFB500 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				24B67F9829D1D04D00FFB500 /* PBXTargetDependency */,
+			);
+			name = "TurfWatch2 Watch AppTests";
+			productName = "TurfWatch2 Watch AppTests";
+			productReference = 24B67F9629D1D04D00FFB500 /* TurfWatch2 Watch AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		24B67F9F29D1D04D00FFB500 /* TurfWatch2 Watch AppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 24B67FB429D1D04D00FFB500 /* Build configuration list for PBXNativeTarget "TurfWatch2 Watch AppUITests" */;
+			buildPhases = (
+				24B67F9C29D1D04D00FFB500 /* Sources */,
+				24B67F9D29D1D04D00FFB500 /* Frameworks */,
+				24B67F9E29D1D04D00FFB500 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				24B67FA229D1D04D00FFB500 /* PBXTargetDependency */,
+			);
+			name = "TurfWatch2 Watch AppUITests";
+			productName = "TurfWatch2 Watch AppUITests";
+			productReference = 24B67FA029D1D04D00FFB500 /* TurfWatch2 Watch AppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		24B67F7829D1D04900FFB500 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1420;
+				LastUpgradeCheck = 1420;
+				TargetAttributes = {
+					24B67F7D29D1D04900FFB500 = {
+						CreatedOnToolsVersion = 14.2;
+					};
+					24B67F8329D1D04900FFB500 = {
+						CreatedOnToolsVersion = 14.2;
+					};
+					24B67F9529D1D04D00FFB500 = {
+						CreatedOnToolsVersion = 14.2;
+						TestTargetID = 24B67F8329D1D04900FFB500;
+					};
+					24B67F9F29D1D04D00FFB500 = {
+						CreatedOnToolsVersion = 14.2;
+						TestTargetID = 24B67F8329D1D04900FFB500;
+					};
+				};
+			};
+			buildConfigurationList = 24B67F7B29D1D04900FFB500 /* Build configuration list for PBXProject "TurfWatch2" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 24B67F7729D1D04900FFB500;
+			productRefGroup = 24B67F7F29D1D04900FFB500 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				24B67F7D29D1D04900FFB500 /* TurfWatch2 */,
+				24B67F8329D1D04900FFB500 /* TurfWatch2 Watch App */,
+				24B67F9529D1D04D00FFB500 /* TurfWatch2 Watch AppTests */,
+				24B67F9F29D1D04D00FFB500 /* TurfWatch2 Watch AppUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		24B67F7C29D1D04900FFB500 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		24B67F8229D1D04900FFB500 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				24B67F9129D1D04D00FFB500 /* Preview Assets.xcassets in Resources */,
+				24B67F8E29D1D04D00FFB500 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		24B67F9429D1D04D00FFB500 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		24B67F9E29D1D04D00FFB500 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		24B67F8029D1D04900FFB500 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				24B67F8C29D1D04900FFB500 /* ContentView.swift in Sources */,
+				24B67F8A29D1D04900FFB500 /* TurfWatch2App.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		24B67F9229D1D04D00FFB500 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				24B67F9B29D1D04D00FFB500 /* TurfWatch2_Watch_AppTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		24B67F9C29D1D04D00FFB500 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				24B67FA729D1D04D00FFB500 /* TurfWatch2_Watch_AppUITestsLaunchTests.swift in Sources */,
+				24B67FA529D1D04D00FFB500 /* TurfWatch2_Watch_AppUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		24B67F8729D1D04900FFB500 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 24B67F8329D1D04900FFB500 /* TurfWatch2 Watch App */;
+			targetProxy = 24B67F8629D1D04900FFB500 /* PBXContainerItemProxy */;
+		};
+		24B67F9829D1D04D00FFB500 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 24B67F8329D1D04900FFB500 /* TurfWatch2 Watch App */;
+			targetProxy = 24B67F9729D1D04D00FFB500 /* PBXContainerItemProxy */;
+		};
+		24B67FA229D1D04D00FFB500 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 24B67F8329D1D04900FFB500 /* TurfWatch2 Watch App */;
+			targetProxy = 24B67FA129D1D04D00FFB500 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		24B67FA829D1D04D00FFB500 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		24B67FA929D1D04D00FFB500 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		24B67FAB29D1D04D00FFB500 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"TurfWatch2 Watch App/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = TurfWatch2;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKWatchOnly = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Archibald.TurfWatch2.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 9.1;
+			};
+			name = Debug;
+		};
+		24B67FAC29D1D04D00FFB500 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"TurfWatch2 Watch App/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = TurfWatch2;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKWatchOnly = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Archibald.TurfWatch2.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 9.1;
+			};
+			name = Release;
+		};
+		24B67FAF29D1D04D00FFB500 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_KEY_CFBundleDisplayName = TurfWatch2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Archibald.TurfWatch2;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		24B67FB029D1D04D00FFB500 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_KEY_CFBundleDisplayName = TurfWatch2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Archibald.TurfWatch2;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		24B67FB229D1D04D00FFB500 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Archibald.TurfWatch2-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TurfWatch2 Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TurfWatch2 Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 9.1;
+			};
+			name = Debug;
+		};
+		24B67FB329D1D04D00FFB500 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Archibald.TurfWatch2-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TurfWatch2 Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TurfWatch2 Watch App";
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 9.1;
+			};
+			name = Release;
+		};
+		24B67FB529D1D04D00FFB500 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Archibald.TurfWatch2-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "TurfWatch2 Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 9.1;
+			};
+			name = Debug;
+		};
+		24B67FB629D1D04D00FFB500 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Archibald.TurfWatch2-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "TurfWatch2 Watch App";
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 9.1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		24B67F7B29D1D04900FFB500 /* Build configuration list for PBXProject "TurfWatch2" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				24B67FA829D1D04D00FFB500 /* Debug */,
+				24B67FA929D1D04D00FFB500 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		24B67FAA29D1D04D00FFB500 /* Build configuration list for PBXNativeTarget "TurfWatch2 Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				24B67FAB29D1D04D00FFB500 /* Debug */,
+				24B67FAC29D1D04D00FFB500 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		24B67FAE29D1D04D00FFB500 /* Build configuration list for PBXNativeTarget "TurfWatch2" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				24B67FAF29D1D04D00FFB500 /* Debug */,
+				24B67FB029D1D04D00FFB500 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		24B67FB129D1D04D00FFB500 /* Build configuration list for PBXNativeTarget "TurfWatch2 Watch AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				24B67FB229D1D04D00FFB500 /* Debug */,
+				24B67FB329D1D04D00FFB500 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		24B67FB429D1D04D00FFB500 /* Build configuration list for PBXNativeTarget "TurfWatch2 Watch AppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				24B67FB529D1D04D00FFB500 /* Debug */,
+				24B67FB629D1D04D00FFB500 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 24B67F7829D1D04900FFB500 /* Project object */;
+}
