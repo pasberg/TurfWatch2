@@ -80,14 +80,15 @@ struct ZoneRow: View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 5) {
                 Circle()
-                    .fill(zoneColor)
+                    .fill(appState.zoneColor(zone))
+                    .overlay(Circle().stroke(Color.white.opacity(0.6), lineWidth: 0.5))
                     .frame(width: 7, height: 7)
                 Text(zone.name)
                     .font(.caption)
                     .lineLimit(1)
             }
             HStack {
-                Text(ownerText)
+                Text(appState.zoneStatusText(zone))
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
@@ -100,15 +101,5 @@ struct ZoneRow: View {
             }
         }
         .padding(.vertical, 2)
-    }
-
-    private var ownerText: String {
-        guard let owner = zone.currentOwner else { return "Neutral" }
-        return appState.isMyZone(zone) ? "Din zon" : owner.name
-    }
-
-    private var zoneColor: Color {
-        guard let _ = zone.currentOwner else { return .gray }
-        return appState.isMyZone(zone) ? .green : .blue
     }
 }

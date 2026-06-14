@@ -1,6 +1,7 @@
 import Foundation
 import CoreLocation
 import Security
+import SwiftUI
 
 class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
 
@@ -157,6 +158,36 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     func isMyZone(_ zone: TurfZone) -> Bool {
         zone.currentOwner?.name.lowercased() == username.lowercased()
+    }
+
+    /// How long a zone stays blocked (locked from takeover) after it's taken.
+    /// Turf's block time is a per-round setting; this is an approximation and
+    /// may need tuning if the API later exposes the real value.
+    private let blockDurationMinutes: Double = 25
+
+    /// A zone is blocked if it was taken within the last `blockDurationMinutes`.
+    func isBlocked(_ zone: TurfZone) -> Bool {
+        guard zone.currentOwner != nil, let taken = zone.lastTakenDate else { return false }
+        return Date().timeIntervalSince(taken) < blockDurationMinutes * 60
+    }
+
+    /// Shared colour legend used across map, list and detail views.
+    /// - black: blocked (in cooldown after a takeover)
+    /// - green: your own zone
+    /// - red: taken (owned by someone else, available to take)
+    /// - yellow: neutral (no owner)
+    func zoneColor(_ zone: TurfZone) -> Color {
+        if isBlocked(zone) { return .black }
+        if zone.currentOwner == nil { return .yellow }
+        if isMyZone(zone) { return .green }
+        return .red
+    }
+
+    /// Shared status label matching the colour legend.
+    func zoneStatusText(_ zone: TurfZone) -> String {
+        if isBlocked(zone) { return "Blockerad" }
+        guard let owner = zone.currentOwner else { return "Neutral" }
+        return isMyZone(zone) ? "Din zon" : owner.name
     }
 
     // MARK: - Keychain

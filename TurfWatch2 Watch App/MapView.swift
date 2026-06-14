@@ -97,7 +97,7 @@ struct ZoneMarker: View {
         VStack(spacing: 1) {
             ZStack {
                 Circle()
-                    .fill(color)
+                    .fill(appState.zoneColor(zone))
                     .frame(width: isSelected ? 16 : 11, height: isSelected ? 16 : 11)
                 Circle()
                     .stroke(Color.white, lineWidth: 1.5)
@@ -113,10 +113,5 @@ struct ZoneMarker: View {
                     .lineLimit(1)
             }
         }
-    }
-
-    private var color: Color {
-        guard zone.currentOwner != nil else { return .gray }
-        return appState.isMyZone(zone) ? .green : .blue
     }
 }

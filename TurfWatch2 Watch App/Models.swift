@@ -27,6 +27,20 @@ struct TurfZone: Codable, Identifiable {
     let dateLastTaken: String?
 
     var isNeutral: Bool { currentOwner == nil }
+
+    /// Parsed timestamp of the last takeover, if available.
+    var lastTakenDate: Date? {
+        guard let s = dateLastTaken else { return nil }
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let d = iso.date(from: s) { return d }
+        iso.formatOptions = [.withInternetDateTime]
+        if let d = iso.date(from: s) { return d }
+        let df = DateFormatter()
+        df.locale = Locale(identifier: "en_US_POSIX")
+        df.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+        return df.date(from: s)
+    }
 }
 
 struct TurfZoneRef: Codable, Identifiable {

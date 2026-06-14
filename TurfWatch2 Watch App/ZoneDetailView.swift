@@ -21,11 +21,12 @@ struct ZoneDetailView: View {
                 // Status badge
                 HStack(spacing: 5) {
                     Circle()
-                        .fill(zoneColor)
+                        .fill(appState.zoneColor(zone))
+                        .overlay(Circle().stroke(Color.white.opacity(0.6), lineWidth: 0.5))
                         .frame(width: 9, height: 9)
-                    Text(statusText)
+                    Text(appState.zoneStatusText(zone))
                         .font(.caption)
-                        .foregroundColor(zoneColor)
+                        .foregroundColor(appState.zoneColor(zone) == .black ? .primary : appState.zoneColor(zone))
                         .bold()
                 }
                 .padding(.bottom, 2)
@@ -45,7 +46,7 @@ struct ZoneDetailView: View {
 
                 // Mini map
                 Map(coordinateRegion: $region, annotationItems: [ZoneAnnotation(zone: zone)]) { item in
-                    MapMarker(coordinate: item.coordinate, tint: zoneColor)
+                    MapMarker(coordinate: item.coordinate, tint: appState.zoneColor(zone))
                 }
                 .frame(height: 90)
                 .cornerRadius(10)
@@ -55,16 +56,6 @@ struct ZoneDetailView: View {
             .padding(.horizontal)
         }
         .navigationTitle(zone.name)
-    }
-
-    private var statusText: String {
-        guard let owner = zone.currentOwner else { return "Neutral" }
-        return appState.isMyZone(zone) ? "Din zon" : owner.name
-    }
-
-    private var zoneColor: Color {
-        guard let _ = zone.currentOwner else { return .gray }
-        return appState.isMyZone(zone) ? .green : .blue
     }
 }
 
