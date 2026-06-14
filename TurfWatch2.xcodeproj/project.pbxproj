@@ -22,6 +22,7 @@
 		EE550002EE550002EE550002 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE550001EE550001EE550001 /* DashboardView.swift */; };
 		FF660002FF660002FF660002 /* NearbyZonesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF660001FF660001FF660001 /* NearbyZonesView.swift */; };
 		AA770002AA770002AA770002 /* ZoneDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA770001AA770001AA770001 /* ZoneDetailView.swift */; };
+		BB880002BB880002BB880002 /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB880001BB880001BB880001 /* MapView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,6 +82,7 @@
 		EE550001EE550001EE550001 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		FF660001FF660001FF660001 /* NearbyZonesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyZonesView.swift; sourceTree = "<group>"; };
 		AA770001AA770001AA770001 /* ZoneDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoneDetailView.swift; sourceTree = "<group>"; };
+		BB880001BB880001BB880001 /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -141,6 +143,7 @@
 				EE550001EE550001EE550001 /* DashboardView.swift */,
 				FF660001FF660001FF660001 /* NearbyZonesView.swift */,
 				AA770001AA770001AA770001 /* ZoneDetailView.swift */,
+				BB880001BB880001BB880001 /* MapView.swift */,
 				24B67F8D29D1D04D00FFB500 /* Assets.xcassets */,
 				24B67F8F29D1D04D00FFB500 /* Preview Content */,
 			);
@@ -339,6 +342,7 @@
 				EE550002EE550002EE550002 /* DashboardView.swift in Sources */,
 				FF660002FF660002FF660002 /* NearbyZonesView.swift in Sources */,
 				AA770002AA770002AA770002 /* ZoneDetailView.swift in Sources */,
+				BB880002BB880002BB880002 /* MapView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

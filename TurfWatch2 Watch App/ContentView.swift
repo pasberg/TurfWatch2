@@ -7,10 +7,13 @@ struct ContentView: View {
         if appState.isLoggedIn {
             TabView {
                 NavigationStack {
-                    DashboardView()
+                    MapView()
                 }
                 NavigationStack {
                     NearbyZonesView()
+                }
+                NavigationStack {
+                    DashboardView()
                 }
             }
             .tabViewStyle(.page)
