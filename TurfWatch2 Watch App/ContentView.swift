@@ -1,26 +1,21 @@
-//
-//  ContentView.swift
-//  TurfWatch2 Watch App
-//
-//  Created by Peter Åsberg on 2023-03-27.
-//
-
 import SwiftUI
 
 struct ContentView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
-        }
-        .padding()
-    }
-}
+    @EnvironmentObject var appState: AppState
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
+    var body: some View {
+        if appState.isLoggedIn {
+            TabView {
+                NavigationStack {
+                    DashboardView()
+                }
+                NavigationStack {
+                    NearbyZonesView()
+                }
+            }
+            .tabViewStyle(.page)
+        } else {
+            LoginView()
+        }
     }
 }

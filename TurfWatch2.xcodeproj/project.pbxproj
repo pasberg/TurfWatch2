@@ -15,6 +15,13 @@
 		24B67F9B29D1D04D00FFB500 /* TurfWatch2_Watch_AppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24B67F9A29D1D04D00FFB500 /* TurfWatch2_Watch_AppTests.swift */; };
 		24B67FA529D1D04D00FFB500 /* TurfWatch2_Watch_AppUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24B67FA429D1D04D00FFB500 /* TurfWatch2_Watch_AppUITests.swift */; };
 		24B67FA729D1D04D00FFB500 /* TurfWatch2_Watch_AppUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24B67FA629D1D04D00FFB500 /* TurfWatch2_Watch_AppUITestsLaunchTests.swift */; };
+		AA110002AA110002AA110002 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA110001AA110001AA110001 /* Models.swift */; };
+		BB220002BB220002BB220002 /* TurfAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB220001BB220001BB220001 /* TurfAPIService.swift */; };
+		CC330002CC330002CC330002 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC330001CC330001CC330001 /* AppState.swift */; };
+		DD440002DD440002DD440002 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD440001DD440001DD440001 /* LoginView.swift */; };
+		EE550002EE550002EE550002 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE550001EE550001EE550001 /* DashboardView.swift */; };
+		FF660002FF660002FF660002 /* NearbyZonesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF660001FF660001FF660001 /* NearbyZonesView.swift */; };
+		AA770002AA770002AA770002 /* ZoneDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA770001AA770001AA770001 /* ZoneDetailView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +74,13 @@
 		24B67FA029D1D04D00FFB500 /* TurfWatch2 Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "TurfWatch2 Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		24B67FA429D1D04D00FFB500 /* TurfWatch2_Watch_AppUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurfWatch2_Watch_AppUITests.swift; sourceTree = "<group>"; };
 		24B67FA629D1D04D00FFB500 /* TurfWatch2_Watch_AppUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurfWatch2_Watch_AppUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		AA110001AA110001AA110001 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		BB220001BB220001BB220001 /* TurfAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurfAPIService.swift; sourceTree = "<group>"; };
+		CC330001CC330001CC330001 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		DD440001DD440001DD440001 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		EE550001EE550001EE550001 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		FF660001FF660001FF660001 /* NearbyZonesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyZonesView.swift; sourceTree = "<group>"; };
+		AA770001AA770001AA770001 /* ZoneDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoneDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -120,6 +134,13 @@
 			children = (
 				24B67F8929D1D04900FFB500 /* TurfWatch2App.swift */,
 				24B67F8B29D1D04900FFB500 /* ContentView.swift */,
+				AA110001AA110001AA110001 /* Models.swift */,
+				BB220001BB220001BB220001 /* TurfAPIService.swift */,
+				CC330001CC330001CC330001 /* AppState.swift */,
+				DD440001DD440001DD440001 /* LoginView.swift */,
+				EE550001EE550001EE550001 /* DashboardView.swift */,
+				FF660001FF660001FF660001 /* NearbyZonesView.swift */,
+				AA770001AA770001AA770001 /* ZoneDetailView.swift */,
 				24B67F8D29D1D04D00FFB500 /* Assets.xcassets */,
 				24B67F8F29D1D04D00FFB500 /* Preview Content */,
 			);
@@ -311,6 +332,13 @@
 			files = (
 				24B67F8C29D1D04900FFB500 /* ContentView.swift in Sources */,
 				24B67F8A29D1D04900FFB500 /* TurfWatch2App.swift in Sources */,
+				AA110002AA110002AA110002 /* Models.swift in Sources */,
+				BB220002BB220002BB220002 /* TurfAPIService.swift in Sources */,
+				CC330002CC330002CC330002 /* AppState.swift in Sources */,
+				DD440002DD440002DD440002 /* LoginView.swift in Sources */,
+				EE550002EE550002EE550002 /* DashboardView.swift in Sources */,
+				FF660002FF660002FF660002 /* NearbyZonesView.swift in Sources */,
+				AA770002AA770002AA770002 /* ZoneDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -472,6 +500,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = TurfWatch2;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "TurfWatch2 visar zoner nära din position.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKWatchOnly = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -501,6 +530,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = TurfWatch2;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "TurfWatch2 visar zoner nära din position.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKWatchOnly = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
