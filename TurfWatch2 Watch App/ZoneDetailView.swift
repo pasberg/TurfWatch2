@@ -30,12 +30,17 @@ struct ZoneDetailView: View {
 
                 Divider()
 
-                if let region = zone.region {
+                if let type = zone.type {
+                    StatRow(label: "Typ", value: type.name, color: .cyan)
+                }
+                if let area = zone.region?.area {
+                    StatRow(label: "Område", value: area.name)
+                } else if let region = zone.region {
                     StatRow(label: "Region", value: region.name)
                 }
-                StatRow(label: "Poäng/h", value: "\(zone.pointsPerHour) p", color: .green)
-                StatRow(label: "Takeover", value: "\(zone.takeoverPoints) p", color: .yellow)
-                StatRow(label: "Taggar", value: "\(zone.totalTakeovers)")
+                StatRow(label: "Poäng/h", value: "\(zone.pointsPerHour ?? 0) p", color: .green)
+                StatRow(label: "Takeover", value: "\(zone.takeoverPoints ?? 0) p", color: .yellow)
+                StatRow(label: "Taggar", value: "\(zone.totalTakeovers ?? 0)")
 
                 if let dist = appState.distanceTo(zone) {
                     StatRow(label: "Avstånd", value: appState.formatDistance(dist), color: .blue)

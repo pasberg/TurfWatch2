@@ -26,22 +26,21 @@ struct TurfZone: Codable, Identifiable {
     let name: String
     let latitude: Double
     let longitude: Double
-    let pointsPerHour: Int
-    let takeoverPoints: Int
-    let totalTakeovers: Int
+    let pointsPerHour: Int?
+    let takeoverPoints: Int?
+    let totalTakeovers: Int?
     let currentOwner: TurfUserRef?
     let region: TurfRegion?
+    let type: TurfZoneType?
     let dateLastTaken: String?
 
-    /// Optional polygon boundary of the zone.
+    /// Polygon boundary of the zone — the real, hand-drawn irregular area.
     ///
-    /// A Turf zone is an irregular real-world *area* (~25×25 m), but the public
-    /// Turf API v4 `/zones` endpoint only returns the center point above — it does
-    /// not include the polygon vertices that turfgame.com draws on its web map.
-    /// This field decodes boundary vertices *if* a data source ever provides them
-    /// (e.g. a GeoJSON export); when absent it stays nil and the map falls back to
-    /// a circular area of the zone's real size around the center point.
-    let points: [TurfCoordinate]?
+    /// The Turf `unstable` API (`api.turfgame.com/unstable/zones`) returns a
+    /// `polygon` array of boundary vertices for each zone, matching the shapes drawn
+    /// in the rezoning tool. When present the map renders the true polygon; when
+    /// absent it falls back to a circle of the zone's real size around the center.
+    let polygon: [TurfCoordinate]?
 
     var isNeutral: Bool { currentOwner == nil }
 
@@ -56,8 +55,8 @@ struct TurfZone: Codable, Identifiable {
 
     /// Boundary vertices as map coordinates, when polygon data is available.
     var areaCoordinates: [CLLocationCoordinate2D]? {
-        guard let points, points.count >= 3 else { return nil }
-        return points.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+        guard let polygon, polygon.count >= 3 else { return nil }
+        return polygon.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
     }
 
     /// Parsed timestamp of the last takeover, if available.
@@ -89,6 +88,19 @@ struct TurfRegion: Codable {
     let id: Int
     let name: String
     let country: String?
+    let area: TurfArea?
+}
+
+/// Municipality-level subdivision within a region (e.g. "Götene").
+struct TurfArea: Codable {
+    let id: Int
+    let name: String
+}
+
+/// Zone category (e.g. Bridge, Holy, Monument, Train Station).
+struct TurfZoneType: Codable {
+    let id: Int
+    let name: String
 }
 
 enum TurfError: Error, LocalizedError {
