@@ -5,30 +5,52 @@ import CoreLocation
 struct MapView: View {
     @EnvironmentObject var appState: AppState
 
-    @State private var region = MKCoordinateRegion(
+    private static let fallbackRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 59.3293, longitude: 18.0686), // Stockholm fallback
         span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
     )
-    @State private var hasCenteredOnUser = false
-    @State private var selectedZone: TurfZone?
+
+    @State private var camera: MapCameraPosition = .userLocation(fallback: .region(fallbackRegion))
+    @State private var selectedZoneID: Int?
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            Map(
-                coordinateRegion: $region,
-                showsUserLocation: true,
-                annotationItems: appState.nearbyZones
-            ) { zone in
-                MapAnnotation(coordinate: CLLocationCoordinate2D(latitude: zone.latitude, longitude: zone.longitude)) {
-                    ZoneMarker(zone: zone, isSelected: selectedZone?.id == zone.id)
-                        .onTapGesture { selectedZone = zone }
+            Map(position: $camera, selection: $selectedZoneID) {
+                UserAnnotation()
+
+                ForEach(appState.nearbyZones) { zone in
+                    let color = appState.zoneColor(zone)
+
+                    // The zone AREA — an irregular polygon if boundary data exists,
+                    // otherwise a circle of the zone's real size around its center.
+                    if let boundary = zone.areaCoordinates {
+                        MapPolygon(coordinates: boundary)
+                            .foregroundStyle(color.opacity(0.28))
+                            .stroke(color, lineWidth: 1.4)
+                    } else {
+                        MapCircle(center: zone.coordinate, radius: zone.areaRadius)
+                            .foregroundStyle(color.opacity(0.28))
+                            .stroke(color, lineWidth: 1.4)
+                    }
+
+                    // A small tappable marker at the center for selection.
+                    Annotation(zone.name, coordinate: zone.coordinate) {
+                        Circle()
+                            .fill(color)
+                            .frame(width: 8, height: 8)
+                            .overlay(Circle().stroke(.white, lineWidth: 1.2))
+                    }
+                    .tag(zone.id)
+                    .annotationTitles(.hidden)
                 }
             }
-            .ignoresSafeArea()
+            .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll))
 
             // Recenter button
             Button {
-                centerOnUser(animated: true)
+                withAnimation {
+                    camera = .userLocation(fallback: .region(Self.fallbackRegion))
+                }
             } label: {
                 Image(systemName: "location.fill")
                     .font(.system(size: 13))
@@ -38,7 +60,6 @@ struct MapView: View {
             .buttonStyle(.plain)
             .padding(8)
 
-            // Loading indicator
             if appState.isLoadingZones {
                 ProgressView()
                     .padding(8)
@@ -48,70 +69,29 @@ struct MapView: View {
             }
         }
         .navigationTitle("Karta")
-        .sheet(item: $selectedZone) { zone in
+        .sheet(item: selectedZoneBinding) { zone in
             NavigationStack {
                 ZoneDetailView(zone: zone)
             }
         }
         .task {
             appState.requestLocation()
-            if appState.location != nil {
-                centerOnUser(animated: false)
-                if appState.nearbyZones.isEmpty {
-                    await appState.refreshNearbyZones()
-                }
+            if appState.location != nil, appState.nearbyZones.isEmpty {
+                await appState.refreshNearbyZones()
             }
         }
         .onChange(of: appState.location) { loc in
-            guard loc != nil else { return }
-            if !hasCenteredOnUser {
-                centerOnUser(animated: false)
-            }
-            if appState.nearbyZones.isEmpty {
+            if loc != nil, appState.nearbyZones.isEmpty {
                 Task { await appState.refreshNearbyZones() }
             }
         }
     }
 
-    private func centerOnUser(animated: Bool) {
-        guard let loc = appState.location else { return }
-        hasCenteredOnUser = true
-        let newRegion = MKCoordinateRegion(
-            center: loc.coordinate,
-            span: MKCoordinateSpan(latitudeDelta: 0.015, longitudeDelta: 0.015)
+    /// Bridges the selected zone id to an optional zone for the detail sheet.
+    private var selectedZoneBinding: Binding<TurfZone?> {
+        Binding(
+            get: { appState.nearbyZones.first { $0.id == selectedZoneID } },
+            set: { newValue in selectedZoneID = newValue?.id }
         )
-        if animated {
-            withAnimation { region = newRegion }
-        } else {
-            region = newRegion
-        }
-    }
-}
-
-struct ZoneMarker: View {
-    let zone: TurfZone
-    let isSelected: Bool
-    @EnvironmentObject var appState: AppState
-
-    var body: some View {
-        VStack(spacing: 1) {
-            ZStack {
-                Circle()
-                    .fill(appState.zoneColor(zone))
-                    .frame(width: isSelected ? 16 : 11, height: isSelected ? 16 : 11)
-                Circle()
-                    .stroke(Color.white, lineWidth: 1.5)
-                    .frame(width: isSelected ? 16 : 11, height: isSelected ? 16 : 11)
-            }
-            if isSelected {
-                Text(zone.name)
-                    .font(.system(size: 9))
-                    .bold()
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 1)
-                    .background(.ultraThinMaterial, in: Capsule())
-                    .lineLimit(1)
-            }
-        }
     }
 }

@@ -1,4 +1,5 @@
 import Foundation
+import CoreLocation
 
 struct TurfUser: Codable, Identifiable {
     let id: Int
@@ -14,6 +15,12 @@ struct TurfUser: Codable, Identifiable {
     let blockTime: Int?
 }
 
+/// A single vertex used when polygon boundary data is available.
+struct TurfCoordinate: Codable {
+    let latitude: Double
+    let longitude: Double
+}
+
 struct TurfZone: Codable, Identifiable {
     let id: Int
     let name: String
@@ -26,7 +33,32 @@ struct TurfZone: Codable, Identifiable {
     let region: TurfRegion?
     let dateLastTaken: String?
 
+    /// Optional polygon boundary of the zone.
+    ///
+    /// A Turf zone is an irregular real-world *area* (~25×25 m), but the public
+    /// Turf API v4 `/zones` endpoint only returns the center point above — it does
+    /// not include the polygon vertices that turfgame.com draws on its web map.
+    /// This field decodes boundary vertices *if* a data source ever provides them
+    /// (e.g. a GeoJSON export); when absent it stays nil and the map falls back to
+    /// a circular area of the zone's real size around the center point.
+    let points: [TurfCoordinate]?
+
     var isNeutral: Bool { currentOwner == nil }
+
+    /// Center of the zone as a coordinate.
+    var coordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
+
+    /// Real-world radius of the zone in meters, used to draw its area on the map.
+    /// Turf zones are roughly 25×25 m, so ~16 m radius approximates the footprint.
+    var areaRadius: CLLocationDistance { 16 }
+
+    /// Boundary vertices as map coordinates, when polygon data is available.
+    var areaCoordinates: [CLLocationCoordinate2D]? {
+        guard let points, points.count >= 3 else { return nil }
+        return points.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+    }
 
     /// Parsed timestamp of the last takeover, if available.
     var lastTakenDate: Date? {

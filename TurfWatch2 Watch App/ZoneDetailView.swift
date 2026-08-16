@@ -5,14 +5,11 @@ struct ZoneDetailView: View {
     let zone: TurfZone
     @EnvironmentObject var appState: AppState
 
-    @State private var region: MKCoordinateRegion
-
-    init(zone: TurfZone) {
-        self.zone = zone
-        _region = State(initialValue: MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: zone.latitude, longitude: zone.longitude),
-            span: MKCoordinateSpan(latitudeDelta: 0.003, longitudeDelta: 0.003)
-        ))
+    private var initialRegion: MKCoordinateRegion {
+        MKCoordinateRegion(
+            center: zone.coordinate,
+            span: MKCoordinateSpan(latitudeDelta: 0.0016, longitudeDelta: 0.0016)
+        )
     }
 
     var body: some View {
@@ -44,27 +41,26 @@ struct ZoneDetailView: View {
                     StatRow(label: "Avstånd", value: appState.formatDistance(dist), color: .blue)
                 }
 
-                // Mini map
-                Map(coordinateRegion: $region, annotationItems: [ZoneAnnotation(zone: zone)]) { item in
-                    MapMarker(coordinate: item.coordinate, tint: appState.zoneColor(zone))
+                // Mini map showing the zone as an area
+                Map(initialPosition: .region(initialRegion), interactionModes: []) {
+                    let color = appState.zoneColor(zone)
+                    if let boundary = zone.areaCoordinates {
+                        MapPolygon(coordinates: boundary)
+                            .foregroundStyle(color.opacity(0.3))
+                            .stroke(color, lineWidth: 1.5)
+                    } else {
+                        MapCircle(center: zone.coordinate, radius: zone.areaRadius)
+                            .foregroundStyle(color.opacity(0.3))
+                            .stroke(color, lineWidth: 1.5)
+                    }
                 }
+                .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll))
                 .frame(height: 90)
                 .cornerRadius(10)
-                .disabled(true)
                 .padding(.top, 4)
             }
             .padding(.horizontal)
         }
         .navigationTitle(zone.name)
-    }
-}
-
-private struct ZoneAnnotation: Identifiable {
-    let id: Int
-    let coordinate: CLLocationCoordinate2D
-
-    init(zone: TurfZone) {
-        id = zone.id
-        coordinate = CLLocationCoordinate2D(latitude: zone.latitude, longitude: zone.longitude)
     }
 }
