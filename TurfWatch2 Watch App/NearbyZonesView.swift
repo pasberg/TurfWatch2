@@ -37,7 +37,7 @@ struct NearbyZonesView: View {
                             .multilineTextAlignment(.center)
                     }
                     Button("Uppdatera") {
-                        Task { await appState.refreshNearbyZones() }
+                        Task { await appState.refreshNearbyZones(force: true) }
                     }
                     .font(.caption2)
                     .buttonStyle(.borderless)
@@ -51,7 +51,7 @@ struct NearbyZonesView: View {
                     }
                 }
                 .refreshable {
-                    await appState.refreshNearbyZones()
+                    await appState.refreshNearbyZones(force: true)
                 }
             }
         }

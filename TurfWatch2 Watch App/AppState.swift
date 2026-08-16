@@ -12,7 +12,6 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
     // MARK: - User data
     @Published var currentUser: TurfUser?
     @Published var nearbyZones: [TurfZone] = []
-    @Published var ownedZones: [TurfZone] = []
 
     // MARK: - Loading / error
     @Published var isLoadingUser = false
@@ -62,7 +61,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         isLoggedIn = false
         currentUser = nil
         nearbyZones = []
-        ownedZones = []
+        allZones = []
         errorMessage = nil
     }
 
@@ -111,22 +110,24 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         isLoadingUser = true
         errorMessage = nil
         do {
-            let user = try await TurfAPIService.shared.fetchUser(name: username)
-            currentUser = user
-            if let refs = user.zones, !refs.isEmpty {
-                let ids = refs.prefix(30).map(\.id)
-                ownedZones = try await TurfAPIService.shared.fetchZones(ids: Array(ids))
-            } else {
-                ownedZones = []
-            }
+            currentUser = try await TurfAPIService.shared.fetchUser(name: username)
         } catch {
             errorMessage = error.localizedDescription
         }
         isLoadingUser = false
     }
 
+    /// Full zone set from the unstable API (all zones, with polygons), cached for
+    /// the session so we filter locally instead of re-downloading on every pan.
+    private var allZones: [TurfZone] = []
+
+    /// How far around the user we keep zones, and how many at most — a watch can't
+    /// render tens of thousands of polygons, and you only care about what's nearby.
+    private let nearbyRadiusMeters: CLLocationDistance = 20_000
+    private let maxNearbyZones = 250
+
     @MainActor
-    func refreshNearbyZones() async {
+    func refreshNearbyZones(force: Bool = false) async {
         guard let loc = location else {
             requestLocation()
             return
@@ -134,11 +135,24 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         isLoadingZones = true
         errorMessage = nil
         do {
-            let zones = try await TurfAPIService.shared.fetchNearbyZones(
-                latitude: loc.coordinate.latitude,
-                longitude: loc.coordinate.longitude
-            )
-            nearbyZones = zones.sorted { distanceTo($0) ?? .infinity < distanceTo($1) ?? .infinity }
+            if allZones.isEmpty || force {
+                allZones = try await TurfAPIService.shared.fetchAllZones()
+            }
+            // Filter the (potentially huge) set down to nearby zones off the main
+            // thread so the watch UI never hitches.
+            let zones = allZones
+            let radius = nearbyRadiusMeters
+            let limit = maxNearbyZones
+            nearbyZones = await Task.detached(priority: .userInitiated) { () -> [TurfZone] in
+                zones
+                    .compactMap { zone -> (TurfZone, CLLocationDistance)? in
+                        let d = loc.distance(from: CLLocation(latitude: zone.latitude, longitude: zone.longitude))
+                        return d <= radius ? (zone, d) : nil
+                    }
+                    .sorted { $0.1 < $1.1 }
+                    .prefix(limit)
+                    .map { $0.0 }
+            }.value
         } catch {
             errorMessage = error.localizedDescription
         }
