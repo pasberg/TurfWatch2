@@ -74,13 +74,21 @@ struct MapView: View {
                 .allowsHitTesting(false)
             }
 
-            // Zoom controls (top-trailing)
+            // Stats header (top) — points/hour, round points, zones held
+            if let user = appState.currentUser {
+                statsHeader(user)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .padding(.top, 2)
+                    .allowsHitTesting(false)
+            }
+
+            // Zoom controls (centre-right, clear of the header)
             VStack(spacing: 6) {
                 mapButton(systemName: "plus") { zoom(by: 0.5) }
                 mapButton(systemName: "minus") { zoom(by: 2.0) }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-            .padding(6)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+            .padding(.trailing, 6)
 
             // Recenter (bottom-trailing)
             mapButton(systemName: "location.fill") {
@@ -97,7 +105,6 @@ struct MapView: View {
                     .padding(8)
             }
         }
-        .navigationTitle("Karta")
         .sheet(item: selectedZoneBinding) { zone in
             NavigationStack {
                 ZoneDetailView(zone: zone)
@@ -105,6 +112,9 @@ struct MapView: View {
         }
         .task {
             appState.requestLocation()
+            if appState.currentUser == nil {
+                await appState.refreshUser()
+            }
             if appState.location != nil, appState.nearbyZones.isEmpty {
                 await appState.refreshNearbyZones()
             }
@@ -114,6 +124,40 @@ struct MapView: View {
                 Task { await appState.refreshNearbyZones() }
             }
         }
+    }
+
+    /// Top bar mirroring the phone app: points/hour, points this round, zones held.
+    private func statsHeader(_ user: TurfUser) -> some View {
+        HStack(spacing: 0) {
+            headerStat(value: "+\(user.pointsPerHour ?? 0)", caption: "p/h", color: .green)
+            headerDivider
+            headerStat(value: (user.points ?? 0).formatted(), caption: "poäng", color: .yellow)
+            headerDivider
+            headerStat(value: "\(user.zones?.count ?? 0)", caption: "zoner", color: .blue)
+        }
+        .padding(.vertical, 3)
+        .padding(.horizontal, 8)
+        .background(.ultraThinMaterial, in: Capsule())
+    }
+
+    private func headerStat(value: String, caption: String, color: Color) -> some View {
+        VStack(spacing: 0) {
+            Text(value)
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(color)
+                .minimumScaleFactor(0.6)
+                .lineLimit(1)
+            Text(caption)
+                .font(.system(size: 7))
+                .foregroundStyle(.secondary)
+        }
+        .frame(minWidth: 32)
+    }
+
+    private var headerDivider: some View {
+        Rectangle()
+            .fill(Color.white.opacity(0.15))
+            .frame(width: 1, height: 16)
     }
 
     private func mapButton(systemName: String, action: @escaping () -> Void) -> some View {
