@@ -3,35 +3,23 @@ import Foundation
 class TurfAPIService {
     static let shared = TurfAPIService()
 
-    /// Stable API — used for the authenticated user lookup.
+    /// Stable API — used for the public user lookup.
     private let baseURL = "https://api.turfgame.com/v4"
     /// Unstable API — the only branch that returns zone `polygon` geometry.
     private let unstableURL = "https://api.turfgame.com/unstable"
-    private var authHeader: String?
-
-    func setCredentials(username: String, password: String) {
-        let token = "\(username):\(password)".data(using: .utf8)!.base64EncodedString()
-        authHeader = "Basic \(token)"
-    }
-
-    func clearCredentials() {
-        authHeader = nil
-    }
 
     private func request(url: URL, method: String = "GET", body: Data? = nil, timeout: TimeInterval = 15) -> URLRequest {
         var req = URLRequest(url: url, timeoutInterval: timeout)
         req.httpMethod = method
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if let auth = authHeader {
-            req.setValue(auth, forHTTPHeaderField: "Authorization")
-        }
         req.httpBody = body
         return req
     }
 
     /// Looks up a user by name. The Turf API v4 has no GET path for a single user
     /// (that returns 404) — you POST a JSON array of names to `/v4/users` and get
-    /// back an array of matching user objects.
+    /// back an array of matching user objects. The endpoint is public (read-only),
+    /// so no authentication is required.
     func fetchUser(name: String) async throws -> TurfUser {
         guard let url = URL(string: "\(baseURL)/users") else {
             throw TurfError.networkError("Ogiltig URL")
@@ -40,7 +28,6 @@ class TurfAPIService {
         let body = try JSONEncoder().encode([NameQuery(name: name)])
         let (data, response) = try await URLSession.shared.data(for: request(url: url, method: "POST", body: body))
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-        if status == 401 { throw TurfError.invalidCredentials }
         if status != 200 { throw TurfError.networkError("HTTP \(status)") }
         do {
             let users = try JSONDecoder().decode([TurfUser].self, from: data)

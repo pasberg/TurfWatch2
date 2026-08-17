@@ -4,7 +4,6 @@ struct LoginView: View {
     @EnvironmentObject var appState: AppState
 
     @State private var username = ""
-    @State private var password = ""
     @State private var isLoading = false
     @State private var error: String?
 
@@ -19,11 +18,14 @@ struct LoginView: View {
                 Text("TurfWatch")
                     .font(.headline)
 
+                Text("Ange ditt Turf-användarnamn")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+
                 TextField("Användarnamn", text: $username)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
-
-                SecureField("Lösenord", text: $password)
 
                 if let msg = error {
                     Text(msg)
@@ -39,13 +41,13 @@ struct LoginView: View {
                         ProgressView()
                             .frame(maxWidth: .infinity)
                     } else {
-                        Text("Logga in")
+                        Text("Fortsätt")
                             .frame(maxWidth: .infinity)
                     }
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.green)
-                .disabled(username.isEmpty || password.isEmpty || isLoading)
+                .disabled(username.trimmingCharacters(in: .whitespaces).isEmpty || isLoading)
             }
             .padding(.horizontal)
         }
@@ -55,7 +57,7 @@ struct LoginView: View {
         isLoading = true
         error = nil
         do {
-            try await appState.login(username: username, password: password)
+            try await appState.login(username: username)
         } catch {
             self.error = error.localizedDescription
         }

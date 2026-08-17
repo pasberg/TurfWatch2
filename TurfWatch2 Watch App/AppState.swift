@@ -1,6 +1,5 @@
 import Foundation
 import CoreLocation
-import Security
 import SwiftUI
 
 class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
@@ -24,18 +23,16 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     private let clManager = CLLocationManager()
     private let usernameKey = "turf_username"
-    private let keychainKey = "turf_password"
 
     override init() {
         super.init()
         clManager.delegate = self
         clManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
 
-        if let saved = UserDefaults.standard.string(forKey: usernameKey),
-           !saved.isEmpty,
-           let pwd = loadKeychain() {
+        // The Turf API is public and read-only, so we only need to remember the
+        // username — there's no password to authenticate.
+        if let saved = UserDefaults.standard.string(forKey: usernameKey), !saved.isEmpty {
             username = saved
-            TurfAPIService.shared.setCredentials(username: saved, password: pwd)
             isLoggedIn = true
         }
     }
@@ -43,20 +40,18 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
     // MARK: - Login / Logout
 
     @MainActor
-    func login(username: String, password: String) async throws {
-        TurfAPIService.shared.setCredentials(username: username, password: password)
-        let user = try await TurfAPIService.shared.fetchUser(name: username)
-        saveKeychain(password)
-        UserDefaults.standard.set(username, forKey: usernameKey)
-        self.username = username
+    func login(username: String) async throws {
+        let trimmed = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Verify the username exists by looking it up before saving it.
+        let user = try await TurfAPIService.shared.fetchUser(name: trimmed)
+        UserDefaults.standard.set(user.name, forKey: usernameKey)
+        self.username = user.name
         self.currentUser = user
         self.isLoggedIn = true
     }
 
     func logout() {
-        deleteKeychain()
         UserDefaults.standard.removeObject(forKey: usernameKey)
-        TurfAPIService.shared.clearCredentials()
         username = ""
         isLoggedIn = false
         currentUser = nil
@@ -202,40 +197,5 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         if isBlocked(zone) { return "Blockerad" }
         guard let owner = zone.currentOwner else { return "Neutral" }
         return isMyZone(zone) ? "Din zon" : owner.name
-    }
-
-    // MARK: - Keychain
-
-    private func saveKeychain(_ value: String) {
-        guard let data = value.data(using: .utf8) else { return }
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: keychainKey
-        ]
-        SecItemDelete(query as CFDictionary)
-        var item = query
-        item[kSecValueData as String] = data
-        SecItemAdd(item as CFDictionary, nil)
-    }
-
-    private func loadKeychain() -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: keychainKey,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-        var result: AnyObject?
-        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
-              let data = result as? Data else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
-
-    private func deleteKeychain() {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: keychainKey
-        ]
-        SecItemDelete(query as CFDictionary)
     }
 }

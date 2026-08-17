@@ -107,14 +107,12 @@ struct TurfZoneType: Codable {
 }
 
 enum TurfError: Error, LocalizedError {
-    case invalidCredentials
     case userNotFound
     case networkError(String)
     case decodingError(String)
 
     var errorDescription: String? {
         switch self {
-        case .invalidCredentials: return "Fel användarnamn eller lösenord"
         case .userNotFound: return "Användaren hittades inte"
         case .networkError(let msg): return "Nätverksfel: \(msg)"
         case .decodingError(let msg): return "Datafel: \(msg)"
