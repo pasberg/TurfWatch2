@@ -46,10 +46,11 @@ struct DashboardView: View {
 
                     // Stats
                     StatRow(label: "Poäng", value: (user.points ?? 0).formatted(), color: .yellow)
-                    StatRow(label: "Rank", value: user.displayRank.map { "#\($0)" } ?? "–", color: .orange)
+                    StatRow(label: "Rank", value: user.rank.map { "\($0)" } ?? "–", color: .orange)
+                    StatRow(label: "Placering", value: user.place.map { "#\($0.formatted())" } ?? "–", color: .cyan)
                     StatRow(label: "Poäng/h", value: "+\(user.pointsPerHour ?? 0)", color: .green)
                     StatRow(label: "Zoner", value: "\(user.zones?.count ?? 0)", color: .blue)
-                    StatRow(label: "Taggar", value: "\(user.taken ?? 0)", color: .purple)
+                    StatRow(label: "Taggar", value: (user.taken ?? 0).formatted(), color: .purple)
 
                     if let error = appState.errorMessage {
                         Text(error)
