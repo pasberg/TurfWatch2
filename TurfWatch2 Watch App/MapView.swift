@@ -11,17 +11,18 @@ struct MapView: View {
     )
 
     @State private var camera: MapCameraPosition = .userLocation(fallback: .region(fallbackRegion))
+    @State private var region = MapView.fallbackRegion
     @State private var selectedZoneID: Int?
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
+        ZStack {
             Map(position: $camera, selection: $selectedZoneID) {
                 UserAnnotation()
 
                 ForEach(appState.nearbyZones) { zone in
                     let color = appState.zoneColor(zone)
 
-                    // The zone AREA — an irregular polygon if boundary data exists,
+                    // The zone AREA — irregular polygon when boundary data exists,
                     // otherwise a circle of the zone's real size around its center.
                     if let boundary = zone.areaCoordinates {
                         MapPolygon(coordinates: boundary)
@@ -33,7 +34,6 @@ struct MapView: View {
                             .stroke(color, lineWidth: 1.4)
                     }
 
-                    // A small tappable marker at the center for selection.
                     Annotation(zone.name, coordinate: zone.coordinate) {
                         Circle()
                             .fill(color)
@@ -45,19 +45,23 @@ struct MapView: View {
                 }
             }
             .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll))
-
-            // Recenter button
-            Button {
-                withAnimation {
-                    camera = .userLocation(fallback: .region(Self.fallbackRegion))
-                }
-            } label: {
-                Image(systemName: "location.fill")
-                    .font(.system(size: 13))
-                    .padding(7)
-                    .background(.ultraThinMaterial, in: Circle())
+            .onMapCameraChange(frequency: .continuous) { context in
+                region = context.region
             }
-            .buttonStyle(.plain)
+
+            // Zoom controls (top-trailing)
+            VStack(spacing: 6) {
+                mapButton(systemName: "plus") { zoom(by: 0.5) }
+                mapButton(systemName: "minus") { zoom(by: 2.0) }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            .padding(6)
+
+            // Recenter (bottom-trailing)
+            mapButton(systemName: "location.fill") {
+                withAnimation { camera = .userLocation(fallback: .region(Self.fallbackRegion)) }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             .padding(8)
 
             if appState.isLoadingZones {
@@ -84,6 +88,30 @@ struct MapView: View {
             if loc != nil, appState.nearbyZones.isEmpty {
                 Task { await appState.refreshNearbyZones() }
             }
+        }
+    }
+
+    private func mapButton(systemName: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 14, weight: .semibold))
+                .frame(width: 26, height: 26)
+                .background(.ultraThinMaterial, in: Circle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Zooms around the current map center. factor < 1 zooms in, > 1 zooms out.
+    private func zoom(by factor: Double) {
+        let latD = min(max(region.span.latitudeDelta * factor, 0.0015), 80)
+        let lonD = min(max(region.span.longitudeDelta * factor, 0.0015), 80)
+        let zoomed = MKCoordinateRegion(
+            center: region.center,
+            span: MKCoordinateSpan(latitudeDelta: latD, longitudeDelta: lonD)
+        )
+        region = zoomed
+        withAnimation(.easeInOut(duration: 0.25)) {
+            camera = .region(zoomed)
         }
     }
 
