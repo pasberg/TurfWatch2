@@ -4,15 +4,18 @@ import CoreLocation
 struct TurfUser: Codable, Identifiable {
     let id: Int
     let name: String
-    let points: Int
-    let rank: Int
-    let pointsPerHour: Int
-    let taken: Int
-    let totalTakenZones: Int
-    let zones: [TurfZoneRef]?
+    let points: Int?
+    let rank: Int?            // level (rank) in the game
+    let place: Int?           // position on the overall leaderboard
+    let pointsPerHour: Int?
+    let taken: Int?           // total takeovers
+    let zones: [TurfZoneRef]? // zones currently held
     let region: TurfRegion?
     let country: String?
-    let blockTime: Int?
+    let blocktime: Int?
+
+    /// Leaderboard position if present, otherwise the in-game rank/level.
+    var displayRank: Int? { place ?? rank }
 }
 
 /// A single vertex used when polygon boundary data is available.

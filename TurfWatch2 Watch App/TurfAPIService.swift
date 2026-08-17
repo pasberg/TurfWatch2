@@ -29,18 +29,25 @@ class TurfAPIService {
         return req
     }
 
+    /// Looks up a user by name. The Turf API v4 has no GET path for a single user
+    /// (that returns 404) — you POST a JSON array of names to `/v4/users` and get
+    /// back an array of matching user objects.
     func fetchUser(name: String) async throws -> TurfUser {
-        let encoded = name.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? name
-        guard let url = URL(string: "\(baseURL)/users/\(encoded)") else {
+        guard let url = URL(string: "\(baseURL)/users") else {
             throw TurfError.networkError("Ogiltig URL")
         }
-        let (data, response) = try await URLSession.shared.data(for: request(url: url))
+        struct NameQuery: Encodable { let name: String }
+        let body = try JSONEncoder().encode([NameQuery(name: name)])
+        let (data, response) = try await URLSession.shared.data(for: request(url: url, method: "POST", body: body))
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         if status == 401 { throw TurfError.invalidCredentials }
-        if status == 404 { throw TurfError.userNotFound }
         if status != 200 { throw TurfError.networkError("HTTP \(status)") }
         do {
-            return try JSONDecoder().decode(TurfUser.self, from: data)
+            let users = try JSONDecoder().decode([TurfUser].self, from: data)
+            guard let user = users.first else { throw TurfError.userNotFound }
+            return user
+        } catch let error as TurfError {
+            throw error
         } catch {
             throw TurfError.decodingError(error.localizedDescription)
         }
