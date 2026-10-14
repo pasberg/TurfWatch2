@@ -11,9 +11,12 @@ class TurfAPIService {
     private func request(url: URL, method: String = "GET", body: Data? = nil, timeout: TimeInterval = 15) -> URLRequest {
         var req = URLRequest(url: url, timeoutInterval: timeout)
         req.httpMethod = method
-        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        // Only send Content-Type when there's actually a body — a GET that carries
+        // Content-Type but no body is rejected by some servers/firewalls.
+        if body != nil {
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
         req.setValue("application/json", forHTTPHeaderField: "Accept")
-        // Some endpoints reject requests without a browser-like User-Agent.
         req.setValue("TurfWatch2/1.0 (watchOS)", forHTTPHeaderField: "User-Agent")
         req.httpBody = body
         return req
