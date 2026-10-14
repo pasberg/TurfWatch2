@@ -12,6 +12,9 @@ class TurfAPIService {
         var req = URLRequest(url: url, timeoutInterval: timeout)
         req.httpMethod = method
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+        // Some endpoints reject requests without a browser-like User-Agent.
+        req.setValue("TurfWatch2/1.0 (watchOS)", forHTTPHeaderField: "User-Agent")
         req.httpBody = body
         return req
     }
