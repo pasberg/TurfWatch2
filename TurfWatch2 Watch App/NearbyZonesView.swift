@@ -64,7 +64,7 @@ struct NearbyZonesView: View {
                 }
             }
         }
-        .onChange(of: appState.location) { loc in
+        .onChange(of: appState.location) { _, loc in
             if loc != nil && appState.nearbyZones.isEmpty {
                 Task { await appState.refreshNearbyZones() }
             }
