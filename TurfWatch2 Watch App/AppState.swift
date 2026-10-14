@@ -57,6 +57,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         currentUser = nil
         nearbyZones = []
         allZones = []
+        AppState.clearCachedZones()
         errorMessage = nil
     }
 
@@ -112,14 +113,17 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         isLoadingUser = false
     }
 
-    /// Full zone set from the unstable API (all zones, with polygons), cached for
-    /// the session so we filter locally instead of re-downloading on every pan.
+    /// Full zone set from the unstable API (all zones, with polygons). Cached in
+    /// memory for the session and on disk between launches so we don't re-download
+    /// the large payload every time.
     private var allZones: [TurfZone] = []
 
     /// How far around the user we keep zones, and how many at most — a watch can't
     /// render tens of thousands of polygons, and you only care about what's nearby.
     private let nearbyRadiusMeters: CLLocationDistance = 20_000
     private let maxNearbyZones = 250
+    /// How long an on-disk zone cache is considered fresh.
+    private static let zoneCacheMaxAge: TimeInterval = 60 * 60 * 24
 
     @MainActor
     func refreshNearbyZones(force: Bool = false) async {
@@ -130,8 +134,20 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         isLoadingZones = true
         errorMessage = nil
         do {
-            if allZones.isEmpty || force {
-                allZones = try await TurfAPIService.shared.fetchAllZones()
+            if force || allZones.isEmpty {
+                // Use the on-disk cache when it's fresh; otherwise download the full
+                // set and write it to disk for next launch. Disk work runs off the
+                // main thread so the UI never hitches on the large payload.
+                if !force,
+                   let cached = await Task.detached(priority: .userInitiated, operation: {
+                       AppState.loadCachedZones(maxAge: AppState.zoneCacheMaxAge)
+                   }).value {
+                    allZones = cached
+                } else {
+                    let fresh = try await TurfAPIService.shared.fetchAllZones()
+                    allZones = fresh
+                    Task.detached(priority: .utility) { AppState.saveCachedZones(fresh) }
+                }
             }
             // Filter the (potentially huge) set down to nearby zones off the main
             // thread so the watch UI never hitches.
@@ -197,5 +213,41 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         if isBlocked(zone) { return "Blockerad" }
         guard let owner = zone.currentOwner else { return "Neutral" }
         return isMyZone(zone) ? "Din zon" : owner.name
+    }
+
+    // MARK: - Zone disk cache
+
+    private struct ZoneCache: Codable {
+        let savedAt: Date
+        let zones: [TurfZone]
+    }
+
+    private static func cacheURL() -> URL? {
+        FileManager.default
+            .urls(for: .cachesDirectory, in: .userDomainMask)
+            .first?
+            .appendingPathComponent("turf_zones_cache.json")
+    }
+
+    /// Writes the full zone set to the caches directory. Safe to call off the main thread.
+    static func saveCachedZones(_ zones: [TurfZone]) {
+        guard let url = cacheURL() else { return }
+        let payload = ZoneCache(savedAt: Date(), zones: zones)
+        guard let data = try? JSONEncoder().encode(payload) else { return }
+        try? data.write(to: url, options: .atomic)
+    }
+
+    /// Returns the cached zones if the cache exists and is younger than `maxAge`.
+    static func loadCachedZones(maxAge: TimeInterval) -> [TurfZone]? {
+        guard let url = cacheURL(),
+              let data = try? Data(contentsOf: url),
+              let payload = try? JSONDecoder().decode(ZoneCache.self, from: data),
+              Date().timeIntervalSince(payload.savedAt) < maxAge else { return nil }
+        return payload.zones
+    }
+
+    static func clearCachedZones() {
+        guard let url = cacheURL() else { return }
+        try? FileManager.default.removeItem(at: url)
     }
 }
