@@ -98,12 +98,27 @@ struct MapView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             .padding(8)
 
-            if appState.isLoadingZones {
-                ProgressView()
-                    .padding(8)
-                    .background(.ultraThinMaterial, in: Circle())
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .padding(8)
+            if appState.nearbyZones.isEmpty {
+                VStack(spacing: 6) {
+                    if appState.isLoadingZones {
+                        ProgressView()
+                        Text("Laddar zoner…")
+                            .font(.caption2).foregroundStyle(.secondary)
+                    } else {
+                        Image(systemName: "mappin.slash")
+                            .foregroundStyle(.secondary)
+                        Text(appState.errorMessage ?? "Inga zoner nära dig")
+                            .font(.caption2).foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                        Button("Försök igen") {
+                            Task { await appState.refreshNearbyZones(force: true) }
+                        }
+                        .font(.caption2)
+                    }
+                }
+                .padding(10)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
+                .padding(.horizontal, 24)
             }
         }
         .sheet(item: selectedZoneBinding) { zone in

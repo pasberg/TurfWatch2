@@ -82,6 +82,15 @@ struct TurfUserRef: Codable, Identifiable {
     let name: String
 }
 
+/// Decodes an element as `T?`, yielding nil instead of throwing — so one
+/// malformed record in a large array doesn't fail the whole decode.
+struct FailableDecodable<T: Decodable>: Decodable {
+    let value: T?
+    init(from decoder: Decoder) throws {
+        value = try? decoder.singleValueContainer().decode(T.self)
+    }
+}
+
 struct TurfRegion: Codable {
     let id: Int
     let name: String

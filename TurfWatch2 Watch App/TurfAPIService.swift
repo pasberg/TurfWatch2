@@ -51,7 +51,10 @@ class TurfAPIService {
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         if status != 200 { throw TurfError.networkError("HTTP \(status)") }
         do {
-            return try JSONDecoder().decode([TurfZone].self, from: data)
+            // Lenient: skip any individual zone that fails to decode rather than
+            // failing the whole (very large) array.
+            let items = try JSONDecoder().decode([FailableDecodable<TurfZone>].self, from: data)
+            return items.compactMap { $0.value }
         } catch {
             throw TurfError.decodingError(error.localizedDescription)
         }
