@@ -14,6 +14,7 @@ struct MapView: View {
     @State private var region = MapView.fallbackRegion
     @State private var selectedZoneID: Int?
     @State private var mapWidth: CGFloat = 0
+    @State private var hasCenteredOnUser = false
 
     var body: some View {
         ZStack {
@@ -92,7 +93,7 @@ struct MapView: View {
 
             // Recenter (bottom-trailing)
             mapButton(systemName: "location.fill") {
-                withAnimation { camera = .userLocation(fallback: .region(Self.fallbackRegion)) }
+                centerOnUser(animated: true)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             .padding(8)
@@ -115,12 +116,19 @@ struct MapView: View {
             if appState.currentUser == nil {
                 await appState.refreshUser()
             }
-            if appState.location != nil, appState.nearbyZones.isEmpty {
-                await appState.refreshNearbyZones()
+            if appState.location != nil {
+                centerOnUser(animated: false)
+                if appState.nearbyZones.isEmpty {
+                    await appState.refreshNearbyZones()
+                }
             }
         }
         .onChange(of: appState.location) { _, loc in
-            if loc != nil, appState.nearbyZones.isEmpty {
+            guard loc != nil else { return }
+            if !hasCenteredOnUser {
+                centerOnUser(animated: false)
+            }
+            if appState.nearbyZones.isEmpty {
                 Task { await appState.refreshNearbyZones() }
             }
         }
@@ -168,6 +176,29 @@ struct MapView: View {
                 .background(.ultraThinMaterial, in: Circle())
         }
         .buttonStyle(.plain)
+    }
+
+    /// Centers the camera on the app's own GPS fix (more reliable than MapKit's
+    /// built-in user location, especially in the simulator). Falls back to
+    /// MapKit's user location if we don't have a fix yet.
+    private func centerOnUser(animated: Bool) {
+        hasCenteredOnUser = true
+        let target: MapCameraPosition
+        if let loc = appState.location {
+            let r = MKCoordinateRegion(
+                center: loc.coordinate,
+                span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+            )
+            region = r
+            target = .region(r)
+        } else {
+            target = .userLocation(fallback: .region(Self.fallbackRegion))
+        }
+        if animated {
+            withAnimation(.easeInOut(duration: 0.3)) { camera = target }
+        } else {
+            camera = target
+        }
     }
 
     /// Zooms around the current map center. factor < 1 zooms in, > 1 zooms out.
