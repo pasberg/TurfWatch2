@@ -135,8 +135,14 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
             requestLocation()
             return
         }
-        // Don't auto-retry after a failed attempt; manual refresh (force) ignores it.
-        if !force && didAttemptZoneLoad && nearbyZones.isEmpty { return }
+        // Show bundled seed zones immediately so there's always something nearby —
+        // even offline or while the live endpoint is rate-limited.
+        if nearbyZones.isEmpty {
+            let seeded = nearbyFiltered(seedZones, around: loc)
+            if !seeded.isEmpty { nearbyZones = seeded }
+        }
+        // Try the live flow once automatically; manual refresh (force) ignores it.
+        if !force && didAttemptZoneLoad { return }
         didAttemptZoneLoad = true
         isLoadingZones = true
         errorMessage = nil
@@ -174,13 +180,39 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
 
             // 3. Fetch full details (polygon + owner) for just those, and sort by distance.
             let detailed = try await TurfAPIService.shared.fetchZoneDetails(ids: nearbyIds)
-            nearbyZones = detailed.sorted {
-                (distanceTo($0) ?? .infinity) < (distanceTo($1) ?? .infinity)
+            if !detailed.isEmpty {
+                nearbyZones = detailed.sorted {
+                    (distanceTo($0) ?? .infinity) < (distanceTo($1) ?? .infinity)
+                }
             }
         } catch {
             errorMessage = error.localizedDescription
+            // Keep the seed zones we already showed.
         }
         isLoadingZones = false
+    }
+
+    /// Filters a zone set to those within range of a point, nearest first.
+    private func nearbyFiltered(_ zones: [TurfZone], around loc: CLLocation) -> [TurfZone] {
+        zones
+            .compactMap { z -> (TurfZone, CLLocationDistance)? in
+                let d = loc.distance(from: CLLocation(latitude: z.latitude, longitude: z.longitude))
+                return d <= nearbyRadiusMeters ? (z, d) : nil
+            }
+            .sorted { $0.1 < $1.1 }
+            .prefix(maxNearbyZones)
+            .map { $0.0 }
+    }
+
+    /// Zones bundled with the app, shown as a fallback when the live API is
+    /// unavailable or rate-limited.
+    private lazy var seedZones: [TurfZone] = AppState.loadSeedZones()
+
+    private static func loadSeedZones() -> [TurfZone] {
+        guard let url = Bundle.main.url(forResource: "seed_zones", withExtension: "json"),
+              let data = try? Data(contentsOf: url) else { return [] }
+        let items = (try? JSONDecoder().decode([FailableDecodable<TurfZone>].self, from: data)) ?? []
+        return items.compactMap { $0.value }
     }
 
     // MARK: - Helpers
