@@ -122,7 +122,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
     /// How far around the user we keep zones, and how many at most — a watch can't
     /// render tens of thousands of polygons, and you only care about what's nearby.
     private let nearbyRadiusMeters: CLLocationDistance = 20_000
-    private let maxNearbyZones = 250
+    private let maxNearbyZones = 150
     /// How long an on-disk zone cache is considered fresh.
     private static let zoneCacheMaxAge: TimeInterval = 60 * 60 * 24
     /// Set once we've tried a network load, so auto-triggers don't hammer the
@@ -135,42 +135,46 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
             requestLocation()
             return
         }
-        // Avoid repeated auto-fetches of the heavy, rate-limited all-zones endpoint.
-        if !force && allZones.isEmpty && didAttemptZoneLoad { return }
+        // Don't auto-retry after a failed attempt; manual refresh (force) ignores it.
+        if !force && didAttemptZoneLoad && nearbyZones.isEmpty { return }
+        didAttemptZoneLoad = true
         isLoadingZones = true
         errorMessage = nil
         do {
+            // 1. Load the lightweight zone index (positions + ids). Cached 24h.
             if force || allZones.isEmpty {
-                // Use the on-disk cache when it's fresh; otherwise download the full
-                // set and write it to disk for next launch. Disk work runs off the
-                // main thread so the UI never hitches on the large payload.
                 if !force,
                    let cached = await Task.detached(priority: .userInitiated, operation: {
                        AppState.loadCachedZones(maxAge: AppState.zoneCacheMaxAge)
                    }).value {
                     allZones = cached
                 } else {
-                    didAttemptZoneLoad = true
                     let fresh = try await TurfAPIService.shared.fetchAllZones()
                     allZones = fresh
                     Task.detached(priority: .utility) { AppState.saveCachedZones(fresh) }
                 }
             }
-            // Filter the (potentially huge) set down to nearby zones off the main
-            // thread so the watch UI never hitches.
+
+            // 2. Pick the nearest zone ids (off the main thread).
             let zones = allZones
             let radius = nearbyRadiusMeters
             let limit = maxNearbyZones
-            nearbyZones = await Task.detached(priority: .userInitiated) { () -> [TurfZone] in
+            let nearbyIds: [Int] = await Task.detached(priority: .userInitiated) { () -> [Int] in
                 zones
-                    .compactMap { zone -> (TurfZone, CLLocationDistance)? in
+                    .compactMap { zone -> (Int, CLLocationDistance)? in
                         let d = loc.distance(from: CLLocation(latitude: zone.latitude, longitude: zone.longitude))
-                        return d <= radius ? (zone, d) : nil
+                        return d <= radius ? (zone.id, d) : nil
                     }
                     .sorted { $0.1 < $1.1 }
                     .prefix(limit)
                     .map { $0.0 }
             }.value
+
+            // 3. Fetch full details (polygon + owner) for just those, and sort by distance.
+            let detailed = try await TurfAPIService.shared.fetchZoneDetails(ids: nearbyIds)
+            nearbyZones = detailed.sorted {
+                (distanceTo($0) ?? .infinity) < (distanceTo($1) ?? .infinity)
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
