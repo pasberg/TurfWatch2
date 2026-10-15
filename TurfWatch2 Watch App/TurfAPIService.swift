@@ -55,9 +55,12 @@ class TurfAPIService {
             throw TurfError.networkError("Ogiltig URL")
         }
         let (data, response) = try await URLSession.shared.data(for: request(url: url, timeout: 60))
-        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        let http = response as? HTTPURLResponse
+        let status = http?.statusCode ?? 0
         if status == 429 {
-            throw TurfError.networkError("För många anrop – vänta en stund (429)")
+            let retry = http?.value(forHTTPHeaderField: "Retry-After")
+            let wait = retry.map { " (vänta ~\($0)s)" } ?? ""
+            throw TurfError.networkError("För många anrop – vänta en stund\(wait)")
         }
         if status != 200 { throw TurfError.networkError("HTTP \(status)") }
         do {
