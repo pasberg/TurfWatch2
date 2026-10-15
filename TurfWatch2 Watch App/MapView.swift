@@ -91,12 +91,35 @@ struct MapView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
             .padding(.trailing, 6)
 
-            // Recenter (bottom-trailing)
-            mapButton(systemName: "location.fill") {
-                centerOnUser(animated: true)
+            // Refresh + recenter (bottom-trailing)
+            VStack(spacing: 6) {
+                mapButton(systemName: "arrow.clockwise") {
+                    Task {
+                        await appState.refreshNearbyZones(force: true)
+                        await appState.refreshUser()
+                    }
+                }
+                mapButton(systemName: "location.fill") {
+                    centerOnUser(animated: true)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             .padding(8)
+
+            // Seed-data indicator (top-leading) — shown while displaying bundled
+            // data instead of live zones.
+            if appState.usingSeedZones && !appState.nearbyZones.isEmpty {
+                Label("Sparad data", systemImage: "externaldrive")
+                    .font(.system(size: 8, weight: .semibold))
+                    .labelStyle(.titleAndIcon)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .padding(.leading, 6)
+                    .padding(.top, 2)
+                    .allowsHitTesting(false)
+            }
 
             if appState.nearbyZones.isEmpty {
                 VStack(spacing: 6) {

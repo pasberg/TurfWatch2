@@ -11,6 +11,8 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
     // MARK: - User data
     @Published var currentUser: TurfUser?
     @Published var nearbyZones: [TurfZone] = []
+    /// True while the map is showing bundled seed zones (not live data).
+    @Published var usingSeedZones = false
 
     // MARK: - Loading / error
     @Published var isLoadingUser = false
@@ -139,7 +141,10 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         // even offline or while the live endpoint is rate-limited.
         if nearbyZones.isEmpty {
             let seeded = nearbyFiltered(seedZones, around: loc)
-            if !seeded.isEmpty { nearbyZones = seeded }
+            if !seeded.isEmpty {
+                nearbyZones = seeded
+                usingSeedZones = true
+            }
         }
         // Try the live flow once automatically; manual refresh (force) ignores it.
         if !force && didAttemptZoneLoad { return }
@@ -184,6 +189,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
                 nearbyZones = detailed.sorted {
                     (distanceTo($0) ?? .infinity) < (distanceTo($1) ?? .infinity)
                 }
+                usingSeedZones = false
             }
         } catch {
             errorMessage = error.localizedDescription
