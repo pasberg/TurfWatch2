@@ -83,16 +83,10 @@ struct MapView: View {
                     .allowsHitTesting(false)
             }
 
-            // Zoom controls (centre-right, clear of the header)
+            // Map controls — one vertical stack on the right edge so nothing overlaps.
             VStack(spacing: 6) {
                 mapButton(systemName: "plus") { zoom(by: 0.5) }
                 mapButton(systemName: "minus") { zoom(by: 2.0) }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
-            .padding(.trailing, 6)
-
-            // Refresh + recenter (bottom-trailing)
-            VStack(spacing: 6) {
                 mapButton(systemName: "arrow.clockwise") {
                     Task {
                         await appState.refreshNearbyZones(force: true)
@@ -104,9 +98,10 @@ struct MapView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-            .padding(8)
+            .padding(.trailing, 6)
+            .padding(.bottom, 8)
 
-            // Seed-data indicator (top-leading) — shown while displaying bundled
+            // Seed-data indicator (bottom-centre) — shown while displaying bundled
             // data instead of live zones.
             if appState.usingSeedZones && !appState.nearbyZones.isEmpty {
                 Label("Sparad data", systemImage: "externaldrive")
@@ -115,9 +110,8 @@ struct MapView: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 3)
                     .background(.ultraThinMaterial, in: Capsule())
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .padding(.leading, 6)
-                    .padding(.top, 2)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .padding(.bottom, 9)
                     .allowsHitTesting(false)
             }
 
