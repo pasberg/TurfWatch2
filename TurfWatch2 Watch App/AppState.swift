@@ -141,10 +141,12 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         isLoadingZones = true
         errorMessage = nil
         do {
-            // 1. Load the lightweight zone index (positions + ids). Cached 24h.
-            if force || allZones.isEmpty {
-                if !force,
-                   let cached = await Task.detached(priority: .userInitiated, operation: {
+            // 1. Load the lightweight zone index once (cache-first). The index
+            //    rarely changes, so even a manual refresh keeps the cached copy and
+            //    only re-POSTs details below — this avoids re-hitting the heavy,
+            //    rate-limited /zones/all endpoint on every retry.
+            if allZones.isEmpty {
+                if let cached = await Task.detached(priority: .userInitiated, operation: {
                        AppState.loadCachedZones(maxAge: AppState.zoneCacheMaxAge)
                    }).value {
                     allZones = cached
