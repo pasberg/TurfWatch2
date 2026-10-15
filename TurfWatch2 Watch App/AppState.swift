@@ -57,6 +57,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         currentUser = nil
         nearbyZones = []
         allZones = []
+        didAttemptZoneLoad = false
         AppState.clearCachedZones()
         errorMessage = nil
     }
@@ -124,6 +125,9 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let maxNearbyZones = 250
     /// How long an on-disk zone cache is considered fresh.
     private static let zoneCacheMaxAge: TimeInterval = 60 * 60 * 24
+    /// Set once we've tried a network load, so auto-triggers don't hammer the
+    /// rate-limited all-zones endpoint; manual refresh (force) ignores it.
+    private var didAttemptZoneLoad = false
 
     @MainActor
     func refreshNearbyZones(force: Bool = false) async {
@@ -131,6 +135,8 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
             requestLocation()
             return
         }
+        // Avoid repeated auto-fetches of the heavy, rate-limited all-zones endpoint.
+        if !force && allZones.isEmpty && didAttemptZoneLoad { return }
         isLoadingZones = true
         errorMessage = nil
         do {
@@ -144,6 +150,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
                    }).value {
                     allZones = cached
                 } else {
+                    didAttemptZoneLoad = true
                     let fresh = try await TurfAPIService.shared.fetchAllZones()
                     allZones = fresh
                     Task.detached(priority: .utility) { AppState.saveCachedZones(fresh) }
