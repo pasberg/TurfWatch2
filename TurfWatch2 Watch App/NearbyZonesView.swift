@@ -3,6 +3,11 @@ import SwiftUI
 struct NearbyZonesView: View {
     @EnvironmentObject var appState: AppState
 
+    /// Only the logged-in user's own zones, among the nearby set.
+    private var myZones: [TurfZone] {
+        appState.nearbyZones.filter { appState.isMyZone($0) }
+    }
+
     var body: some View {
         Group {
             if appState.locationDenied {
@@ -44,8 +49,24 @@ struct NearbyZonesView: View {
                     .foregroundColor(.green)
                 }
                 .padding()
+            } else if myZones.isEmpty {
+                VStack(spacing: 8) {
+                    Image(systemName: "flag.slash")
+                        .font(.title2)
+                        .foregroundColor(.secondary)
+                    Text("Inga av dina zoner i närheten")
+                        .font(.caption)
+                        .multilineTextAlignment(.center)
+                    Button("Uppdatera") {
+                        Task { await appState.refreshNearbyZones(force: true) }
+                    }
+                    .font(.caption2)
+                    .buttonStyle(.borderless)
+                    .foregroundColor(.green)
+                }
+                .padding()
             } else {
-                List(appState.nearbyZones) { zone in
+                List(myZones) { zone in
                     NavigationLink(destination: ZoneDetailView(zone: zone)) {
                         ZoneRow(zone: zone)
                     }
@@ -55,7 +76,7 @@ struct NearbyZonesView: View {
                 }
             }
         }
-        .navigationTitle("Zoner")
+        .navigationTitle("Mina zoner")
         .task {
             if appState.nearbyZones.isEmpty {
                 appState.requestLocation()
