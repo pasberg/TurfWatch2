@@ -47,10 +47,11 @@ class TurfAPIService {
     }
 
     /// Fetches every zone from the unstable API, each including its `polygon`
-    /// boundary. This is a large response, so callers should cache the result and
-    /// filter it down to the zones near the user rather than re-fetching often.
+    /// boundary. `unstable/zones/all` is a plain GET meant for bulk fetching
+    /// (server-cached); `unstable/zones` without a body is a POST and returns 405
+    /// on GET. This is a large response, so callers cache it and filter locally.
     func fetchAllZones() async throws -> [TurfZone] {
-        guard let url = URL(string: "\(unstableURL)/zones") else {
+        guard let url = URL(string: "\(unstableURL)/zones/all") else {
             throw TurfError.networkError("Ogiltig URL")
         }
         let (data, response) = try await URLSession.shared.data(for: request(url: url, timeout: 60))
