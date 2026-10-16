@@ -1,43 +1,77 @@
 import WidgetKit
 import SwiftUI
+import AppIntents
+
+// MARK: - Configuration (the user types their Turf username in the complication
+// settings; no App Group / shared storage needed).
+
+struct TurfConfigIntent: WidgetConfigurationIntent {
+    static var title: LocalizedStringResource = "Turf"
+    static var description = IntentDescription("Visa statistik för ett Turf-användarnamn.")
+
+    @Parameter(title: "Användarnamn", default: "Ventruce")
+    var username: String
+}
 
 // MARK: - Entry
 
 struct TurfEntry: TimelineEntry {
     let date: Date
+    let username: String
     let pph: Int
     let points: Int
     let zones: Int
-    let nearestZone: String
 }
 
-// MARK: - Provider (reads the stats the app writes to the shared App Group)
+// MARK: - Self-contained Turf API fetch
 
-struct TurfProvider: TimelineProvider {
-    private let appGroup = "group.com.pasberg.TurfWatch2"
+private struct TurfUserLite: Decodable {
+    let name: String
+    let points: Int?
+    let pointsPerHour: Int?
+    let zones: [Int]?
+}
 
-    private func load() -> TurfEntry {
-        let d = UserDefaults(suiteName: appGroup)
+private func fetchTurfUser(_ name: String) async -> TurfUserLite? {
+    let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty, let url = URL(string: "https://api.turfgame.com/v4/users") else { return nil }
+    var req = URLRequest(url: url)
+    req.httpMethod = "POST"
+    req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    req.setValue("application/json", forHTTPHeaderField: "Accept")
+    req.httpBody = try? JSONSerialization.data(withJSONObject: [["name": trimmed]])
+    guard let (data, resp) = try? await URLSession.shared.data(for: req),
+          (resp as? HTTPURLResponse)?.statusCode == 200,
+          let users = try? JSONDecoder().decode([TurfUserLite].self, from: data) else { return nil }
+    return users.first
+}
+
+// MARK: - Provider
+
+struct TurfProvider: AppIntentTimelineProvider {
+    func placeholder(in context: Context) -> TurfEntry {
+        TurfEntry(date: Date(), username: "Ventruce", pph: 24, points: 21692, zones: 6)
+    }
+
+    func snapshot(for configuration: TurfConfigIntent, in context: Context) async -> TurfEntry {
+        await entry(for: configuration.username)
+    }
+
+    func timeline(for configuration: TurfConfigIntent, in context: Context) async -> Timeline<TurfEntry> {
+        let e = await entry(for: configuration.username)
+        let next = Calendar.current.date(byAdding: .minute, value: 20, to: Date()) ?? Date().addingTimeInterval(1200)
+        return Timeline(entries: [e], policy: .after(next))
+    }
+
+    private func entry(for username: String) async -> TurfEntry {
+        let u = await fetchTurfUser(username)
         return TurfEntry(
             date: Date(),
-            pph: d?.integer(forKey: "pph") ?? 0,
-            points: d?.integer(forKey: "points") ?? 0,
-            zones: d?.integer(forKey: "zones") ?? 0,
-            nearestZone: d?.string(forKey: "nearestZone") ?? "—"
+            username: u?.name ?? username,
+            pph: u?.pointsPerHour ?? 0,
+            points: u?.points ?? 0,
+            zones: u?.zones?.count ?? 0
         )
-    }
-
-    func placeholder(in context: Context) -> TurfEntry {
-        TurfEntry(date: Date(), pph: 24, points: 21692, zones: 6, nearestZone: "KungFrilles")
-    }
-
-    func getSnapshot(in context: Context, completion: @escaping (TurfEntry) -> Void) {
-        completion(load())
-    }
-
-    func getTimeline(in context: Context, completion: @escaping (Timeline<TurfEntry>) -> Void) {
-        let next = Calendar.current.date(byAdding: .minute, value: 15, to: Date()) ?? Date().addingTimeInterval(900)
-        completion(Timeline(entries: [load()], policy: .after(next)))
     }
 }
 
@@ -48,8 +82,7 @@ struct TurfComplicationView: View {
     let entry: TurfEntry
 
     var body: some View {
-        content
-            .containerBackground(.clear, for: .widget)
+        content.containerBackground(.clear, for: .widget)
     }
 
     @ViewBuilder
@@ -69,11 +102,10 @@ struct TurfComplicationView: View {
 
         case .accessoryRectangular:
             VStack(alignment: .leading, spacing: 1) {
-                Text("Turf").font(.headline)
+                Text(entry.username).font(.headline)
                 Text("+\(entry.pph) p/h · \(entry.points) p")
-                Text("\(entry.zones) zoner · \(entry.nearestZone)")
+                Text("\(entry.zones) zoner")
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
             }
 
         case .accessoryCorner:
@@ -91,11 +123,11 @@ struct TurfComplicationView: View {
 @main
 struct TurfComplication: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "TurfComplication", provider: TurfProvider()) { entry in
+        AppIntentConfiguration(kind: "TurfComplication", intent: TurfConfigIntent.self, provider: TurfProvider()) { entry in
             TurfComplicationView(entry: entry)
         }
         .configurationDisplayName("Turf")
-        .description("Dina poäng/h, poäng och antal zoner.")
+        .description("Statistik för ett Turf-användarnamn.")
         .supportedFamilies([
             .accessoryInline,
             .accessoryCircular,

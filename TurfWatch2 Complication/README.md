@@ -1,39 +1,41 @@
-# TurfWatch2 — urtavlekomplikation
+# TurfWatch2 — urtavlekomplikation (ingen App Group behövs)
 
-Koden för komplikationen (`TurfComplication.swift`) ligger här men är **inte**
-tillagd i Xcode-projektet, eftersom en komplikation måste köra i ett eget
-*Widget Extension*-target. Följ stegen nedan för att aktivera den.
+`TurfComplication.swift` är en **självständig** komplikation: den hämtar sin egen
+statistik direkt från Turf-API:t utifrån ett användarnamn du anger i
+komplikationens inställningar. Därför behövs **ingen App Group och inget betalt
+Apple-konto** för att dela data.
 
-## 1. Lägg till ett Widget Extension-target
+Koden ligger här men är **inte** tillagd i Xcode-projektet, eftersom en
+komplikation måste köra i ett eget *Widget Extension*-target.
 
-1. I Xcode: **File → New → Target…**
+## 1. Ta bort App Group (om du la till den)
+
+Om du hann lägga till App Group-capability på `TurfWatch2 Watch App`:
+markera target → **Signing & Capabilities** → ta bort **App Groups**
+(papperskorgen). Den behövs inte längre och ger bara en röd varning på
+gratiskonto.
+
+## 2. Skapa Widget Extension-targetet
+
+1. **File → New → Target…**
 2. Välj **watchOS → Widget Extension**. Namnge det t.ex. `TurfComplication`.
-3. Avmarkera "Include Configuration App Intent" (vi använder en statisk widget).
-4. När Xcode frågar om att aktivera schemat: **Activate**.
+3. **Behåll** "Include Configuration App Intent" ikryssat (vi använder en
+   konfigurerbar widget där man anger användarnamn).
+4. **Activate** schemat när Xcode frågar.
 
 Xcode skapar en mapp med en genererad widget-fil. **Ersätt** innehållet i den
-genererade `.swift`-filen med innehållet i `TurfComplication.swift` här (eller
-radera den genererade filen och dra in den här i target-mappen).
+genererade `.swift`-filen med innehållet i `TurfComplication.swift` här
+(eller radera den genererade filen och dra in den här i target-mappen).
 
-## 2. Dela data mellan appen och komplikationen (App Group)
-
-Komplikationen läser statistik som appen skriver via en delad **App Group**.
-
-1. Markera projektet → välj **appens** target (`TurfWatch2 Watch App`) →
-   **Signing & Capabilities → + Capability → App Groups**.
-2. Lägg till gruppen: `group.com.pasberg.TurfWatch2`
-   (samma sträng som `AppState.appGroup`).
-3. Upprepa för **komplikationens** target: lägg till App Groups och samma grupp.
-
-> Byter du grupp-id, uppdatera `AppState.appGroup` och `appGroup` i
-> `TurfComplication.swift` så de matchar.
+> Targetets deployment target ska vara watchOS 10.0 (samma som appen).
 
 ## 3. Bygg och lägg till på urtavlan
 
-1. Kör appen en gång så den hämtar din profil (den skriver statistik till
-   App Group-lagringen).
+1. Kör appen/komplikationen i simulatorn.
 2. Tryck och håll på urtavlan → **Edit** → välj en komplikationsplats →
    välj **Turf**.
+3. Öppna komplikationens inställningar och skriv in ditt **Turf-användarnamn**
+   (standard är "Ventruce"). Den hämtar sedan statistiken själv.
 
 ## Vad som visas
 
@@ -41,15 +43,15 @@ Komplikationen läser statistik som appen skriver via en delad **App Group**.
 |---|---|
 | Inline | `24 p/h · 6 zoner` |
 | Circular | mätare med p/h |
-| Rectangular | p/h, poäng, antal zoner + närmaste zon |
+| Rectangular | användarnamn, p/h, poäng, antal zoner |
 | Corner | p/h |
 
-Komplikationen uppdateras när appen hämtar ny data (den anropar
-`WidgetCenter.reloadAllTimelines()`), och minst var 15:e minut.
+Komplikationen uppdateras ca var 20:e minut och när appen körts (appen anropar
+`WidgetCenter.reloadAllTimelines()`).
 
 ## Felsökning
 
-- **Tomt/nollor:** kör appen i förgrunden en gång så den hinner skriva data,
-  och kontrollera att **exakt samma** App Group-id finns på båda targets.
-- **Byggfel om `containerBackground`:** kräver watchOS 10+. Projektets
-  deployment target är redan 10.0.
+- **Nollor:** kontrollera att användarnamnet är rätt stavat i komplikationens
+  inställningar, och att nätverk finns. Är Turf-API:t rate-limitat (429) visas
+  senast kända värden tills nästa lyckade hämtning.
+- **Byggfel om `containerBackground`/App Intents:** kräver watchOS 10+.

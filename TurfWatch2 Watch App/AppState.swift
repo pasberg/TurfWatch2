@@ -467,25 +467,11 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate, UNUserNot
         for z in lost { notifyZoneTaken(z) }
     }
 
-    // MARK: - Complication shared stats
+    // MARK: - Complication
 
-    /// App Group used to share stats with the complication widget extension.
-    /// Must be added as an App Group capability to BOTH targets in Xcode.
-    static let appGroup = "group.com.pasberg.TurfWatch2"
-
-    /// Writes the latest stats to shared storage and nudges the complication to
-    /// refresh. No-ops gracefully if the App Group isn't configured yet.
+    /// Nudges the complication to refresh (it fetches its own data by username,
+    /// so no shared storage/App Group is needed).
     func publishStatsToComplication() {
-        guard let shared = UserDefaults(suiteName: Self.appGroup) else { return }
-        shared.set(username, forKey: "username")
-        shared.set(currentUser?.pointsPerHour ?? 0, forKey: "pph")
-        shared.set(currentUser?.points ?? 0, forKey: "points")
-        shared.set(currentUser?.zones?.count ?? 0, forKey: "zones")
-        if let nearest = nearbyZones.first {
-            shared.set(nearest.name, forKey: "nearestZone")
-            shared.set(distanceTo(nearest) ?? -1, forKey: "nearestDist")
-        }
-        shared.set(Date(), forKey: "updatedAt")
         WidgetCenter.shared.reloadAllTimelines()
     }
 
