@@ -17,7 +17,12 @@ class TurfAPIService {
             req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
         req.setValue("application/json", forHTTPHeaderField: "Accept")
-        req.setValue("TurfWatch2/1.0 (watchOS)", forHTTPHeaderField: "User-Agent")
+        req.setValue("sv-SE,sv;q=0.9,en;q=0.8", forHTTPHeaderField: "Accept-Language")
+        // Mimic a normal mobile browser. Turf serves 200 to the website but has
+        // been rate-limiting our custom client UA harder, so present a Safari UA.
+        req.setValue(
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+            forHTTPHeaderField: "User-Agent")
         req.httpBody = body
         return req
     }

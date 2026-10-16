@@ -180,7 +180,9 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         // Show bundled seed zones immediately so there's always something nearby —
         // even offline or while the live endpoint is rate-limited.
         if nearbyZones.isEmpty {
-            let seeded = nearbyFiltered(seedZones, around: loc)
+            // Only zones we have real shapes for are shown offline; the rest of the
+            // bundle is a lightweight index used purely to find nearby ids below.
+            let seeded = nearbyFiltered(displayableSeedZones, around: loc)
             if !seeded.isEmpty {
                 nearbyZones = seeded
                 usingSeedZones = true
@@ -286,6 +288,9 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
     /// Zones bundled with the app, shown as a fallback when the live API is
     /// unavailable or rate-limited.
     private lazy var seedZones: [TurfZone] = AppState.loadSeedZones()
+    /// Seed zones we can actually draw (have a polygon). The full `seedZones` set
+    /// also includes lightweight index-only zones used just for nearby-id lookup.
+    private lazy var displayableSeedZones: [TurfZone] = seedZones.filter { $0.polygon != nil }
 
     private static func loadSeedZones() -> [TurfZone] {
         guard let url = Bundle.main.url(forResource: "seed_zones", withExtension: "json"),
