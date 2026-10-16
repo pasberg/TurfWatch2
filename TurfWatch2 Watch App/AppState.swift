@@ -17,7 +17,11 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
     // MARK: - Loading / error
     @Published var isLoadingUser = false
     @Published var isLoadingZones = false
+    /// Error from the profile/user lookup.
     @Published var errorMessage: String?
+    /// Error from the zone load, kept separate so a successful user refresh
+    /// doesn't wipe the reason we're still on seed data (e.g. rate limiting).
+    @Published var zoneErrorMessage: String?
 
     // MARK: - Location
     @Published var location: CLLocation?
@@ -61,7 +65,9 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         allZones = []
         didAttemptZoneLoad = false
         AppState.clearCachedZones()
+        usingSeedZones = false
         errorMessage = nil
+        zoneErrorMessage = nil
     }
 
     // MARK: - Location
@@ -150,7 +156,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         if !force && didAttemptZoneLoad { return }
         didAttemptZoneLoad = true
         isLoadingZones = true
-        errorMessage = nil
+        zoneErrorMessage = nil
         do {
             // 1. Load the lightweight zone index once (cache-first). The index
             //    rarely changes, so even a manual refresh keeps the cached copy and
@@ -192,7 +198,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
                 usingSeedZones = false
             }
         } catch {
-            errorMessage = error.localizedDescription
+            zoneErrorMessage = error.localizedDescription
             // Keep the seed zones we already showed.
         }
         isLoadingZones = false

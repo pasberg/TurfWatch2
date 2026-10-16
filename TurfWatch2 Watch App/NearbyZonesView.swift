@@ -35,7 +35,7 @@ struct NearbyZonesView: View {
                         .foregroundColor(.secondary)
                     Text("Inga zoner hittades")
                         .font(.caption)
-                    if let error = appState.errorMessage {
+                    if let error = appState.zoneErrorMessage {
                         Text(error)
                             .font(.caption2)
                             .foregroundColor(.red)

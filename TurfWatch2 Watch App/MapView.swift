@@ -58,62 +58,88 @@ struct MapView: View {
                 }
             )
 
-            // Scale indicator (bottom-leading)
-            if let scale = scaleBar(mapWidth: mapWidth) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(scale.label)
-                        .font(.system(size: 9, weight: .semibold))
-                    Rectangle()
-                        .frame(width: scale.width, height: 3)
-                }
-                .padding(.horizontal, 5)
-                .padding(.vertical, 3)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 5))
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-                .padding(.leading, 8)
-                .padding(.bottom, 10)
-                .allowsHitTesting(false)
-            }
-
-            // Stats header (top) — points/hour, round points, zones held
+            // --- Top: stats header (points/hour, round points, zones held) ----
             if let user = appState.currentUser {
                 statsHeader(user)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                    .padding(.top, 2)
+                    .padding(.top, edgeInset)
                     .allowsHitTesting(false)
             }
 
-            // Map controls — one vertical stack on the right edge so nothing overlaps.
-            VStack(spacing: 6) {
-                mapButton(systemName: "plus") { zoom(by: 0.5) }
-                mapButton(systemName: "minus") { zoom(by: 2.0) }
-                mapButton(systemName: "arrow.clockwise") {
+            // --- Right edge: zoom / refresh / recenter ------------------------
+            VStack(spacing: controlSpacing) {
+                mapButton(systemName: "plus", size: controlDiameter) { zoom(by: 0.5) }
+                mapButton(systemName: "minus", size: controlDiameter) { zoom(by: 2.0) }
+                mapButton(systemName: "arrow.clockwise", size: controlDiameter) {
                     Task {
                         await appState.refreshNearbyZones(force: true)
                         await appState.refreshUser()
                     }
                 }
-                mapButton(systemName: "location.fill") {
+                mapButton(systemName: "location.fill", size: controlDiameter) {
                     centerOnUser(animated: true)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-            .padding(.trailing, 6)
-            .padding(.bottom, 8)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+            .padding(.trailing, edgeInset)
 
-            // Seed-data indicator (bottom-centre) — shown while displaying bundled
-            // data instead of live zones.
-            if appState.usingSeedZones && !appState.nearbyZones.isEmpty {
-                Label("Sparad data", systemImage: "externaldrive")
-                    .font(.system(size: 8, weight: .semibold))
-                    .labelStyle(.titleAndIcon)
-                    .padding(.horizontal, 6)
+            // --- Bottom-left: saved-data pill + scale bar ---------------------
+            VStack(alignment: .leading, spacing: 4) {
+                // Seed indicator — tappable to retry the live load, with the
+                // reason shown when the live fetch is failing (e.g. rate limit).
+                if appState.usingSeedZones && !appState.nearbyZones.isEmpty {
+                    Button {
+                        Task {
+                            await appState.refreshNearbyZones(force: true)
+                            await appState.refreshUser()
+                        }
+                    } label: {
+                        HStack(spacing: 3) {
+                            if appState.isLoadingZones {
+                                ProgressView()
+                                    .scaleEffect(0.5)
+                                    .frame(width: 10, height: 10)
+                            } else {
+                                Image(systemName: "externaldrive")
+                            }
+                            Text("Sparad data")
+                        }
+                        .font(.system(size: 8, weight: .semibold))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(.ultraThinMaterial, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+
+                    if let zoneError = appState.zoneErrorMessage, !appState.isLoadingZones {
+                        Text(zoneError)
+                            .font(.system(size: 7))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: max(mapWidth * 0.62, 90), alignment: .leading)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 4))
+                    }
+                }
+
+                if let scale = scaleBar(mapWidth: mapWidth) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(scale.label)
+                            .font(.system(size: 9, weight: .semibold))
+                        Rectangle()
+                            .frame(width: scale.width, height: 3)
+                    }
+                    .padding(.horizontal, 5)
                     .padding(.vertical, 3)
-                    .background(.ultraThinMaterial, in: Capsule())
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                    .padding(.bottom, 9)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 5))
                     .allowsHitTesting(false)
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+            .padding(.leading, edgeInset)
+            .padding(.bottom, edgeInset)
 
             if appState.nearbyZones.isEmpty {
                 VStack(spacing: 6) {
@@ -124,7 +150,7 @@ struct MapView: View {
                     } else {
                         Image(systemName: "mappin.slash")
                             .foregroundStyle(.secondary)
-                        Text(appState.errorMessage ?? "Inga zoner nära dig")
+                        Text(appState.zoneErrorMessage ?? "Inga zoner nära dig")
                             .font(.caption2).foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
                         Button("Försök igen") {
@@ -200,15 +226,25 @@ struct MapView: View {
             .frame(width: 1, height: 16)
     }
 
-    private func mapButton(systemName: String, action: @escaping () -> Void) -> some View {
+    private func mapButton(systemName: String, size: CGFloat, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .font(.system(size: 14, weight: .semibold))
-                .frame(width: 26, height: 26)
+                .font(.system(size: size * 0.54, weight: .semibold))
+                .frame(width: size, height: size)
                 .background(.ultraThinMaterial, in: Circle())
         }
         .buttonStyle(.plain)
     }
+
+    // MARK: - Size-adaptive metrics (scale with the watch's screen width)
+
+    /// Larger watches (45/49 mm, Ultra) get bigger controls; small ones stay compact.
+    private var isLargeScreen: Bool { mapWidth >= 190 }
+    private var controlDiameter: CGFloat { isLargeScreen ? 30 : 26 }
+    private var controlSpacing: CGFloat { isLargeScreen ? 7 : 6 }
+    /// Padding from the usable (safe-area) edge. Kept small so controls hug the
+    /// edge; the system safe area already clears the curved corners.
+    private var edgeInset: CGFloat { isLargeScreen ? 4 : 3 }
 
     /// Centers the camera on the app's own GPS fix (more reliable than MapKit's
     /// built-in user location, especially in the simulator). Falls back to
