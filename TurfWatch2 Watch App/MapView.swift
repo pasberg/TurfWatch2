@@ -186,14 +186,16 @@ struct MapView: View {
                 }
             }
         }
-        .onChange(of: appState.location) { _, loc in
-            guard loc != nil else { return }
+        .onChange(of: appState.location) { oldLoc, loc in
+            guard let loc else { return }
             if !hasCenteredOnUser {
                 centerOnUser(animated: false)
+            } else if let oldLoc, loc.distance(from: oldLoc) > 3000 {
+                // Followed the user to a new area — recenter so the map and the
+                // freshly loaded zones come into view.
+                centerOnUser(animated: true)
             }
-            if appState.nearbyZones.isEmpty {
-                Task { await appState.refreshNearbyZones() }
-            }
+            // Zone (re)loading on movement is handled in AppState's location update.
         }
     }
 

@@ -37,6 +37,8 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         super.init()
         clManager.delegate = self
         clManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+        // Only react to real movement, not tiny GPS jitter.
+        clManager.distanceFilter = 50
 
         // The Turf API is public and read-only, so we only need to remember the
         // username — there's no password to authenticate.
@@ -68,6 +70,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         allZones = []
         didAttemptZoneLoad = false
         didTryFullIndex = false
+        lastLoadedCenter = nil
         rateLimitedUntil = nil
         consecutiveRateLimits = 0
         AppState.clearCachedZones()
@@ -83,7 +86,9 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         case .notDetermined:
             clManager.requestWhenInUseAuthorization()
         case .authorizedWhenInUse, .authorizedAlways:
-            clManager.requestLocation()
+            // Continuous updates so the position follows you as you move, instead
+            // of a single fix that goes stale when you travel to a new area.
+            clManager.startUpdatingLocation()
         case .denied, .restricted:
             locationDenied = true
         @unknown default:
@@ -95,7 +100,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
             locationDenied = false
-            manager.requestLocation()
+            manager.startUpdatingLocation()
         case .denied, .restricted:
             locationDenied = true
         default:
@@ -103,8 +108,21 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
+    /// Centre of the area we last loaded zones for, to detect when the user has
+    /// travelled far enough to warrant reloading.
+    private var lastLoadedCenter: CLLocation?
+
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        location = locations.last
+        guard let loc = locations.last else { return }
+        location = loc
+        // Don't auto-refresh while rate-limited; wait out the cooldown.
+        if let until = rateLimitedUntil, Date() < until { return }
+        // (Re)load zones on the first fix, or after moving to a new area (>3 km).
+        let moved = lastLoadedCenter.map { loc.distance(from: $0) > 3000 } ?? true
+        if moved && !isLoadingZones {
+            lastLoadedCenter = loc
+            Task { await refreshNearbyZones(force: true) }
+        }
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -224,6 +242,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         // Try the live flow once automatically; manual refresh (force) ignores it.
         if !force && didAttemptZoneLoad { return }
         didAttemptZoneLoad = true
+        lastLoadedCenter = loc
         isLoadingZones = true
         zoneErrorMessage = nil
         defer { isLoadingZones = false }
