@@ -17,6 +17,9 @@ struct ContentView: View {
                 }
             }
             .tabViewStyle(.page)
+            .task {
+                appState.requestNotificationAuth()
+            }
         } else {
             LoginView()
         }

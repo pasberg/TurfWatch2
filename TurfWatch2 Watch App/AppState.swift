@@ -1,8 +1,10 @@
 import Foundation
 import CoreLocation
 import SwiftUI
+import UserNotifications
+import WidgetKit
 
-class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
+class AppState: NSObject, ObservableObject, CLLocationManagerDelegate, UNUserNotificationCenterDelegate {
 
     // MARK: - Auth state
     @Published var isLoggedIn = false
@@ -36,6 +38,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         clManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
         // Only react to real movement, not tiny GPS jitter.
         clManager.distanceFilter = 50
+        UNUserNotificationCenter.current().delegate = self
 
         // The Turf API is public and read-only, so we only need to remember the
         // username — there's no password to authenticate.
@@ -56,6 +59,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         self.username = user.name
         self.currentUser = user
         self.isLoggedIn = true
+        requestNotificationAuth()
     }
 
     func logout() {
@@ -65,6 +69,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         currentUser = nil
         nearbyZones = []
         allZones = []
+        myZoneOwnership = [:]
         didAttemptZoneLoad = false
         didTryFullIndex = false
         lastLoadedCenter = nil
@@ -140,6 +145,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         errorMessage = nil
         do {
             currentUser = try await TurfAPIService.shared.fetchUser(name: username)
+            publishStatsToComplication()
         } catch let error as TurfError {
             errorMessage = error.errorDescription
             if case .rateLimited(let retry) = error {
@@ -269,12 +275,15 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
             // Fetch fresh details (polygon + current owner) for the nearby zones.
             let detailed = try await TurfAPIService.shared.fetchZoneDetails(ids: nearbyIds)
             if !detailed.isEmpty {
+                // Notify if any of your zones was taken over since the last load.
+                detectTakenZones(in: detailed)
                 nearbyZones = detailed.sorted {
                     (distanceTo($0) ?? .infinity) < (distanceTo($1) ?? .infinity)
                 }
                 usingSeedZones = false
                 rateLimitedUntil = nil
                 consecutiveRateLimits = 0
+                publishStatsToComplication()
             }
 
             // The light path worked using the bundled index. Try once per session
@@ -364,14 +373,40 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 
     /// How long a zone stays blocked (locked from takeover) after it's taken.
-    /// Turf's block time is a per-round setting; this is an approximation and
-    /// may need tuning if the API later exposes the real value.
-    private let blockDurationMinutes: Double = 25
+    /// Turf's block time is a per-round setting, exposed as the logged-in user's
+    /// `blocktime` (minutes); falls back to 25 min when unknown.
+    var blockDurationMinutes: Double {
+        if let bt = currentUser?.blocktime, bt > 0 { return Double(bt) }
+        return 25
+    }
+
+    /// When a zone's block period ends, or nil if it isn't currently blocked.
+    func blockEndDate(for zone: TurfZone) -> Date? {
+        guard zone.currentOwner != nil, let taken = zone.lastTakenDate else { return nil }
+        let end = taken.addingTimeInterval(blockDurationMinutes * 60)
+        return end > Date() ? end : nil
+    }
 
     /// A zone is blocked if it was taken within the last `blockDurationMinutes`.
     func isBlocked(_ zone: TurfZone) -> Bool {
-        guard zone.currentOwner != nil, let taken = zone.lastTakenDate else { return false }
-        return Date().timeIntervalSince(taken) < blockDurationMinutes * 60
+        blockEndDate(for: zone) != nil
+    }
+
+    // MARK: - Current zone (takeover HUD)
+
+    /// How close (metres) you must be for a zone to count as "you're standing in it".
+    private let currentZoneRadius: CLLocationDistance = 25
+
+    /// The zone you're physically standing in right now, if any — used to show the
+    /// takeover/block countdown like the phone app.
+    var currentZone: TurfZone? {
+        guard let loc = location else { return nil }
+        return nearbyZones
+            .compactMap { z -> (TurfZone, CLLocationDistance)? in
+                let d = loc.distance(from: CLLocation(latitude: z.latitude, longitude: z.longitude))
+                return d <= currentZoneRadius ? (z, d) : nil
+            }
+            .min { $0.1 < $1.1 }?.0
     }
 
     /// Shared colour legend used across map, list and detail views.
@@ -391,6 +426,80 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         if isBlocked(zone) { return "Blockerad" }
         guard let owner = zone.currentOwner else { return "Neutral" }
         return isMyZone(zone) ? "Din zon" : owner.name
+    }
+
+    // MARK: - Notifications (your zone was taken)
+
+    /// Whether each seen zone was yours at the previous refresh, to detect losses.
+    private var myZoneOwnership: [Int: Bool] = [:]
+    /// Whether the user has granted notification permission.
+    @Published var notificationsEnabled = false
+
+    /// Asks once for permission to post local notifications.
+    func requestNotificationAuth() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, _ in
+            Task { @MainActor in self.notificationsEnabled = granted }
+        }
+    }
+
+    /// Compares the fresh zone data against the previous snapshot and notifies for
+    /// any zone that was yours and is now owned by someone else.
+    private func detectTakenZones(in zones: [TurfZone]) {
+        var lost: [TurfZone] = []
+        for z in zones {
+            let mine = isMyZone(z)
+            if myZoneOwnership[z.id] == true && !mine {
+                lost.append(z)
+            }
+            myZoneOwnership[z.id] = mine
+        }
+        for z in lost { notifyZoneTaken(z) }
+    }
+
+    // MARK: - Complication shared stats
+
+    /// App Group used to share stats with the complication widget extension.
+    /// Must be added as an App Group capability to BOTH targets in Xcode.
+    static let appGroup = "group.com.pasberg.TurfWatch2"
+
+    /// Writes the latest stats to shared storage and nudges the complication to
+    /// refresh. No-ops gracefully if the App Group isn't configured yet.
+    func publishStatsToComplication() {
+        guard let shared = UserDefaults(suiteName: Self.appGroup) else { return }
+        shared.set(username, forKey: "username")
+        shared.set(currentUser?.pointsPerHour ?? 0, forKey: "pph")
+        shared.set(currentUser?.points ?? 0, forKey: "points")
+        shared.set(currentUser?.zones?.count ?? 0, forKey: "zones")
+        if let nearest = nearbyZones.first {
+            shared.set(nearest.name, forKey: "nearestZone")
+            shared.set(distanceTo(nearest) ?? -1, forKey: "nearestDist")
+        }
+        shared.set(Date(), forKey: "updatedAt")
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    /// Show "zone taken" alerts even while the app is in the foreground.
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .sound, .list])
+    }
+
+    private func notifyZoneTaken(_ zone: TurfZone) {
+        let content = UNMutableNotificationContent()
+        content.title = "Zon förlorad"
+        if let taker = zone.currentOwner?.name {
+            content.body = "\(zone.name) togs av \(taker)."
+        } else {
+            content.body = "\(zone.name) är inte längre din."
+        }
+        content.sound = .default
+        let request = UNNotificationRequest(
+            identifier: "zone-taken-\(zone.id)-\(Int(Date().timeIntervalSince1970))",
+            content: content,
+            trigger: nil // deliver immediately
+        )
+        UNUserNotificationCenter.current().add(request)
     }
 
     // MARK: - Zone disk cache

@@ -28,6 +28,24 @@ struct ZoneDetailView: View {
                 }
                 .padding(.bottom, 2)
 
+                // Live block countdown — ticks down until the zone can be taken.
+                if let end = appState.blockEndDate(for: zone) {
+                    TimelineView(.periodic(from: .now, by: 1)) { context in
+                        let remaining = max(0, end.timeIntervalSince(context.date))
+                        HStack(spacing: 4) {
+                            Image(systemName: "timer")
+                            Text(appState.isMyZone(zone)
+                                 ? "Tagen – fri om \(MapView.mmss(remaining))"
+                                 : "Blockerad \(MapView.mmss(remaining))")
+                        }
+                        .font(.caption2).bold()
+                        .foregroundColor(appState.isMyZone(zone) ? .green : .orange)
+                        .padding(.horizontal, 7).padding(.vertical, 3)
+                        .background(.ultraThinMaterial, in: Capsule())
+                    }
+                    .padding(.bottom, 2)
+                }
+
                 Divider()
 
                 if let type = zone.type {

@@ -58,13 +58,16 @@ struct MapView: View {
                 }
             )
 
-            // --- Top: stats header (points/hour, round points, zones held) ----
-            if let user = appState.currentUser {
-                statsHeader(user)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                    .padding(.top, edgeInset)
-                    .allowsHitTesting(false)
+            // --- Top: stats header + takeover HUD -----------------------------
+            VStack(spacing: 3) {
+                if let user = appState.currentUser {
+                    statsHeader(user)
+                }
+                takeoverHUD
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .padding(.top, edgeInset)
+            .allowsHitTesting(false)
 
             // --- Right edge: zoom / refresh / recenter ------------------------
             VStack(spacing: controlSpacing) {
@@ -228,6 +231,45 @@ struct MapView: View {
             .padding(.horizontal, 5)
             .padding(.vertical, 2)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 4))
+    }
+
+    /// Shown when you're physically standing in a zone: its name and, when it's
+    /// blocked (just taken), a live countdown until the block lifts — like the
+    /// phone app's takeover timer.
+    @ViewBuilder
+    private var takeoverHUD: some View {
+        if let zone = appState.currentZone {
+            let mine = appState.isMyZone(zone)
+            VStack(spacing: 1) {
+                Text(zone.name)
+                    .font(.system(size: 9, weight: .bold))
+                    .lineLimit(1)
+                if let end = appState.blockEndDate(for: zone) {
+                    TimelineView(.periodic(from: .now, by: 1)) { context in
+                        let remaining = max(0, end.timeIntervalSince(context.date))
+                        Label(
+                            "\(mine ? "Tagen – fri om" : "Blockerad") \(Self.mmss(remaining))",
+                            systemImage: "timer"
+                        )
+                        .font(.system(size: 8, weight: .semibold))
+                        .foregroundStyle(mine ? .green : .orange)
+                    }
+                } else {
+                    Text(mine ? "Din zon" : "Du står här")
+                        .font(.system(size: 8))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(.ultraThinMaterial, in: Capsule())
+        }
+    }
+
+    /// Formats a duration as M:SS.
+    static func mmss(_ seconds: TimeInterval) -> String {
+        let total = Int(seconds.rounded())
+        return String(format: "%d:%02d", total / 60, total % 60)
     }
 
     /// Top bar mirroring the phone app: points/hour, points this round, zones held.
