@@ -22,6 +22,9 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
     /// Error from the zone load, kept separate so a successful user refresh
     /// doesn't wipe the reason we're still on seed data (e.g. rate limiting).
     @Published var zoneErrorMessage: String?
+    /// Short technical status of the last zone refresh, shown on the map to help
+    /// diagnose why zones may not appear.
+    @Published private(set) var diagnostics = ""
 
     // MARK: - Location
     @Published var location: CLLocation?
@@ -178,9 +181,11 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
     @MainActor
     func refreshNearbyZones(force: Bool = false) async {
         guard let loc = location else {
+            diagnostics = "ingen position – väntar på GPS"
             requestLocation()
             return
         }
+        let posStr = String(format: "pos %.3f,%.3f", loc.coordinate.latitude, loc.coordinate.longitude)
         // Show bundled seed zones immediately so there's always something nearby —
         // even offline or while the live endpoint is rate-limited.
         if nearbyZones.isEmpty {
@@ -198,6 +203,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         if let until = rateLimitedUntil, Date() < until {
             let secs = Int(until.timeIntervalSinceNow.rounded(.up))
             zoneErrorMessage = "För många anrop – vänta ~\(secs) s"
+            diagnostics = "\(posStr) · cooldown \(secs)s"
             return
         }
 
@@ -208,6 +214,9 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         zoneErrorMessage = nil
         defer { isLoadingZones = false }
 
+        var dbgNear = 0
+        var dbgFetched = 0
+        var dbgHeavy = false
         do {
             // Decide which zones are "near me" using the lightest index available:
             // a cached full index if we have one, otherwise the bundled seed zones.
@@ -227,14 +236,17 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
             // (e.g. the user is far from Frillesås) do we fall back to the heavy
             // all-zones index to discover nearby ids.
             if nearbyIds.isEmpty && allZones.isEmpty {
+                dbgHeavy = true
                 let fresh = try await TurfAPIService.shared.fetchAllZones()
                 allZones = fresh
                 Task.detached(priority: .utility) { AppState.saveCachedZones(fresh) }
                 nearbyIds = await nearestZoneIds(from: fresh, around: loc)
             }
+            dbgNear = nearbyIds.count
 
             // Fetch fresh details (polygon + current owner) for the nearby zones.
             let detailed = try await TurfAPIService.shared.fetchZoneDetails(ids: nearbyIds)
+            dbgFetched = detailed.count
             if !detailed.isEmpty {
                 nearbyZones = detailed.sorted {
                     (distanceTo($0) ?? .infinity) < (distanceTo($1) ?? .infinity)
@@ -243,6 +255,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
                 rateLimitedUntil = nil
                 consecutiveRateLimits = 0
             }
+            diagnostics = "\(posStr) · idx \(indexSource.count)\(dbgHeavy ? "+all" : "") · nära \(dbgNear) · svar \(dbgFetched)"
 
             // The light path worked using the bundled index. Try once per session
             // to upgrade to the full live index so areas the bundle covers only
@@ -257,9 +270,11 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
             }
         } catch let error as TurfError {
             handleZoneError(error)
+            diagnostics = "\(posStr) · nära \(dbgNear)\(dbgHeavy ? " (allZones)" : "") · \(error.errorDescription ?? "fel")"
             // Keep the seed zones we already showed.
         } catch {
             zoneErrorMessage = error.localizedDescription
+            diagnostics = "\(posStr) · \(error.localizedDescription)"
         }
     }
 

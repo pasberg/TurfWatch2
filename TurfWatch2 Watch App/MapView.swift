@@ -147,6 +147,13 @@ struct MapView: View {
                             Task { await appState.refreshNearbyZones(force: true) }
                         }
                         .font(.caption2)
+                        if !appState.diagnostics.isEmpty {
+                            Text(appState.diagnostics)
+                                .font(.system(size: 7))
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .textSelection(.enabled)
+                        }
                     }
                 }
                 .padding(10)
