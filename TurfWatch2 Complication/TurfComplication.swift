@@ -1,17 +1,8 @@
 import WidgetKit
 import SwiftUI
-import AppIntents
 
-// MARK: - Configuration (the user types their Turf username in the complication
-// settings; no App Group / shared storage needed).
-
-struct TurfConfigIntent: WidgetConfigurationIntent {
-    static var title: LocalizedStringResource { "Turf" }
-    static var description: IntentDescription { "Visa statistik för ett Turf-användarnamn." }
-
-    @Parameter(title: "Användarnamn", default: "Ventruce")
-    var username: String
-}
+// MARK: - Ändra till ditt Turf-användarnamn
+private let kUsername = "Ventruce"
 
 // MARK: - Entry
 
@@ -23,7 +14,7 @@ struct TurfEntry: TimelineEntry {
     let zones: Int
 }
 
-// MARK: - Self-contained Turf API fetch
+// MARK: - Self-contained Turf API fetch (no App Group / shared storage needed)
 
 private struct TurfUserLite: Decodable {
     let name: String
@@ -46,31 +37,30 @@ private func fetchTurfUser(_ name: String) async -> TurfUserLite? {
     return users.first
 }
 
-// MARK: - Provider
+// MARK: - Provider (classic, stable TimelineProvider)
 
-struct TurfProvider: AppIntentTimelineProvider {
-    typealias Entry = TurfEntry
-    typealias Intent = TurfConfigIntent
-
-    func placeholder(in context: TimelineProviderContext) -> TurfEntry {
-        TurfEntry(date: Date(), username: "Ventruce", pph: 24, points: 21692, zones: 6)
+struct TurfProvider: TimelineProvider {
+    func placeholder(in context: Context) -> TurfEntry {
+        TurfEntry(date: Date(), username: kUsername, pph: 24, points: 21692, zones: 6)
     }
 
-    func snapshot(for configuration: TurfConfigIntent, in context: TimelineProviderContext) async -> TurfEntry {
-        await entry(for: configuration.username)
+    func getSnapshot(in context: Context, completion: @escaping (TurfEntry) -> Void) {
+        Task { completion(await loadEntry()) }
     }
 
-    func timeline(for configuration: TurfConfigIntent, in context: TimelineProviderContext) async -> Timeline<TurfEntry> {
-        let e = await entry(for: configuration.username)
-        let next = Calendar.current.date(byAdding: .minute, value: 20, to: Date()) ?? Date().addingTimeInterval(1200)
-        return Timeline(entries: [e], policy: .after(next))
+    func getTimeline(in context: Context, completion: @escaping (Timeline<TurfEntry>) -> Void) {
+        Task {
+            let entry = await loadEntry()
+            let next = Date().addingTimeInterval(20 * 60) // refresh ~every 20 min
+            completion(Timeline(entries: [entry], policy: .after(next)))
+        }
     }
 
-    private func entry(for username: String) async -> TurfEntry {
-        let u = await fetchTurfUser(username)
+    private func loadEntry() async -> TurfEntry {
+        let u = await fetchTurfUser(kUsername)
         return TurfEntry(
             date: Date(),
-            username: u?.name ?? username,
+            username: u?.name ?? kUsername,
             pph: u?.pointsPerHour ?? 0,
             points: u?.points ?? 0,
             zones: u?.zones?.count ?? 0
@@ -126,11 +116,11 @@ struct TurfComplicationView: View {
 @main
 struct TurfComplication: Widget {
     var body: some WidgetConfiguration {
-        AppIntentConfiguration(kind: "TurfComplication", intent: TurfConfigIntent.self, provider: TurfProvider()) { entry in
+        StaticConfiguration(kind: "TurfComplication", provider: TurfProvider()) { entry in
             TurfComplicationView(entry: entry)
         }
         .configurationDisplayName("Turf")
-        .description("Statistik för ett Turf-användarnamn.")
+        .description("Din Turf-statistik.")
         .supportedFamilies([
             .accessoryInline,
             .accessoryCircular,

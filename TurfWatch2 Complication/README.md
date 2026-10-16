@@ -1,9 +1,12 @@
 # TurfWatch2 — urtavlekomplikation (ingen App Group behövs)
 
 `TurfComplication.swift` är en **självständig** komplikation: den hämtar sin egen
-statistik direkt från Turf-API:t utifrån ett användarnamn du anger i
-komplikationens inställningar. Därför behövs **ingen App Group och inget betalt
-Apple-konto** för att dela data.
+statistik direkt från Turf-API:t. Användarnamnet anges som konstanten
+`kUsername` högst upp i filen (byt till ditt). Därför behövs **ingen App Group,
+inget konfigurations-intent och inget betalt Apple-konto**.
+
+Den använder den klassiska `StaticConfiguration` + `TimelineProvider`, som är
+stabil och fungerar oavsett SDK-version.
 
 Koden ligger här men är **inte** tillagd i Xcode-projektet, eftersom en
 komplikation måste köra i ett eget *Widget Extension*-target.
@@ -19,9 +22,13 @@ gratiskonto.
 
 1. **File → New → Target…**
 2. Välj **watchOS → Widget Extension**. Namnge det t.ex. `TurfComplication`.
-3. **Behåll** "Include Configuration App Intent" ikryssat (vi använder en
-   konfigurerbar widget där man anger användarnamn).
+3. **Avmarkera** "Include Configuration App Intent" (vi använder en statisk
+   widget — användarnamnet sätts i koden).
 4. **Activate** schemat när Xcode frågar.
+
+Radera de genererade extra-filerna (`TurfComplicationBundle.swift`,
+`AppIntent.swift`, `TurfComplicationControl.swift`) och ersätt den genererade
+`TurfComplication.swift` med filen här. Byt `kUsername` till ditt Turf-namn.
 
 Xcode skapar en mapp med en genererad widget-fil. **Ersätt** innehållet i den
 genererade `.swift`-filen med innehållet i `TurfComplication.swift` här
