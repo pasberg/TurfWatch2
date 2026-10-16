@@ -255,7 +255,7 @@ struct MapView: View {
                         .foregroundStyle(mine ? .green : .orange)
                     }
                 } else {
-                    Text(mine ? "Din zon" : "Du står här")
+                    Text(takenSubtitle(for: zone, mine: mine))
                         .font(.system(size: 8))
                         .foregroundStyle(.secondary)
                 }
@@ -264,6 +264,15 @@ struct MapView: View {
             .padding(.vertical, 3)
             .background(.ultraThinMaterial, in: Capsule())
         }
+    }
+
+    /// Subtitle when standing in a zone that isn't blocked.
+    private func takenSubtitle(for zone: TurfZone, mine: Bool) -> String {
+        let prefix = mine ? "Din zon" : (zone.currentOwner?.name ?? "Neutral")
+        if let ago = appState.lastTakenText(zone) {
+            return "\(prefix) · tagen \(ago)"
+        }
+        return prefix
     }
 
     /// Formats a duration as M:SS.

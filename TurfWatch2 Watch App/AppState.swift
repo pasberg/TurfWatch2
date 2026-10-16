@@ -380,9 +380,34 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate, UNUserNot
         return 25
     }
 
+    /// Local "I just took this" overrides, used for the test button and to reflect
+    /// a fresh takeover immediately before the next server refresh.
+    @Published private var localTakeovers: [Int: Date] = [:]
+
+    /// The takeover time to use — a local override if present, else the server's.
+    func effectiveLastTaken(_ zone: TurfZone) -> Date? {
+        localTakeovers[zone.id] ?? zone.lastTakenDate
+    }
+
+    /// Marks a zone as taken right now (test / optimistic update).
+    func simulateTakeover(_ zone: TurfZone) {
+        localTakeovers[zone.id] = Date()
+    }
+
+    /// Human-readable "last taken" age, e.g. "3 min sedan".
+    func lastTakenText(_ zone: TurfZone) -> String? {
+        guard let d = effectiveLastTaken(zone) else { return nil }
+        let s = Date().timeIntervalSince(d)
+        if s < 60 { return "nyss" }
+        if s < 3600 { return "\(Int(s / 60)) min sedan" }
+        if s < 86_400 { return "\(Int(s / 3600)) h sedan" }
+        return "\(Int(s / 86_400)) d sedan"
+    }
+
     /// When a zone's block period ends, or nil if it isn't currently blocked.
     func blockEndDate(for zone: TurfZone) -> Date? {
-        guard zone.currentOwner != nil, let taken = zone.lastTakenDate else { return nil }
+        guard zone.currentOwner != nil || localTakeovers[zone.id] != nil,
+              let taken = effectiveLastTaken(zone) else { return nil }
         let end = taken.addingTimeInterval(blockDurationMinutes * 60)
         return end > Date() ? end : nil
     }

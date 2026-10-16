@@ -81,6 +81,24 @@ struct ZoneDetailView: View {
                 .frame(height: 90)
                 .cornerRadius(10)
                 .padding(.top, 4)
+
+                if let ago = appState.lastTakenText(zone) {
+                    Text("Senast tagen: \(ago)")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .padding(.top, 2)
+                }
+
+                // Test: simulate taking this zone so you can see the countdown run.
+                Button {
+                    appState.simulateTakeover(zone)
+                } label: {
+                    Label("Simulera tagning (test)", systemImage: "flag.fill")
+                        .font(.caption2)
+                }
+                .buttonStyle(.bordered)
+                .tint(.green)
+                .padding(.top, 4)
             }
             .padding(.horizontal)
         }
