@@ -152,7 +152,6 @@ struct MapView: View {
                                 .font(.system(size: 7))
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
-                                .textSelection(.enabled)
                         }
                     }
                 }
