@@ -65,6 +65,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         allZones = []
         didAttemptZoneLoad = false
         rateLimitedUntil = nil
+        consecutiveRateLimits = 0
         AppState.clearCachedZones()
         usingSeedZones = false
         errorMessage = nil
@@ -113,10 +114,18 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
     @MainActor
     func refreshUser() async {
         guard isLoggedIn else { return }
+        // Don't fire profile lookups while rate-limited — they count toward the
+        // same limit and only keep us stuck.
+        if inCooldown { return }
         isLoadingUser = true
         errorMessage = nil
         do {
             currentUser = try await TurfAPIService.shared.fetchUser(name: username)
+        } catch let error as TurfError {
+            errorMessage = error.errorDescription
+            if case .rateLimited(let retry) = error {
+                beginRateLimit(retryAfter: retry)
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -131,7 +140,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
     /// How far around the user we keep zones, and how many at most — a watch can't
     /// render tens of thousands of polygons, and you only care about what's nearby.
     private let nearbyRadiusMeters: CLLocationDistance = 20_000
-    private let maxNearbyZones = 150
+    private let maxNearbyZones = 100
     /// How long an on-disk zone cache is considered fresh.
     private static let zoneCacheMaxAge: TimeInterval = 60 * 60 * 24
     /// Set once we've tried a network load, so auto-triggers don't hammer the
@@ -139,7 +148,28 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var didAttemptZoneLoad = false
     /// While set and in the future, we're in a rate-limit cooldown and skip
     /// network calls — retrying only extends Turf's limit and keeps us on seed.
-    private var rateLimitedUntil: Date?
+    /// Published so the UI can show a live countdown.
+    @Published private(set) var rateLimitedUntil: Date?
+    /// Consecutive 429s, used to back off progressively — Turf often limits for
+    /// longer than its Retry-After header suggests.
+    private var consecutiveRateLimits = 0
+
+    /// True while inside a rate-limit cooldown.
+    @MainActor
+    private var inCooldown: Bool {
+        if let until = rateLimitedUntil, Date() < until { return true }
+        return false
+    }
+
+    /// Starts/extends a cooldown after a 429. Backs off 30s → 60s → 120s → 240s,
+    /// capped at 5 min, and never shorter than the server's Retry-After.
+    @MainActor
+    private func beginRateLimit(retryAfter: TimeInterval?) {
+        consecutiveRateLimits += 1
+        let escalated = min(30.0 * pow(2.0, Double(consecutiveRateLimits - 1)), 300.0)
+        let wait = max(retryAfter ?? 0, escalated)
+        rateLimitedUntil = Date().addingTimeInterval(wait)
+    }
 
     @MainActor
     func refreshNearbyZones(force: Bool = false) async {
@@ -205,6 +235,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
                 }
                 usingSeedZones = false
                 rateLimitedUntil = nil
+                consecutiveRateLimits = 0
             }
         } catch let error as TurfError {
             handleZoneError(error)
@@ -220,8 +251,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
     private func handleZoneError(_ error: TurfError) {
         zoneErrorMessage = error.errorDescription
         if case .rateLimited(let retry) = error {
-            let wait = retry.map { max($0, 5) } ?? 60
-            rateLimitedUntil = Date().addingTimeInterval(wait)
+            beginRateLimit(retryAfter: retry)
         }
     }
 

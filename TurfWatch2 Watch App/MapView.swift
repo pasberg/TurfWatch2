@@ -111,16 +111,8 @@ struct MapView: View {
                     }
                     .buttonStyle(.plain)
 
-                    if let zoneError = appState.zoneErrorMessage, !appState.isLoadingZones {
-                        Text(zoneError)
-                            .font(.system(size: 7))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.leading)
-                            .frame(maxWidth: max(mapWidth * 0.62, 90), alignment: .leading)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 2)
-                            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 4))
+                    if !appState.isLoadingZones {
+                        reasonLabel
                     }
                 }
 
@@ -190,6 +182,34 @@ struct MapView: View {
                 Task { await appState.refreshNearbyZones() }
             }
         }
+    }
+
+    /// Why we're on seed data — a live-ticking countdown while rate-limited,
+    /// otherwise the last zone error (if any).
+    @ViewBuilder
+    private var reasonLabel: some View {
+        if let until = appState.rateLimitedUntil, until > Date() {
+            TimelineView(.periodic(from: .now, by: 1)) { context in
+                let remaining = max(0, Int(until.timeIntervalSince(context.date).rounded(.up)))
+                reasonText(remaining > 0
+                           ? "För många anrop – vänta \(remaining)s"
+                           : "Tryck för att försöka igen")
+            }
+        } else if let zoneError = appState.zoneErrorMessage {
+            reasonText(zoneError)
+        }
+    }
+
+    private func reasonText(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 7))
+            .foregroundStyle(.secondary)
+            .lineLimit(2)
+            .multilineTextAlignment(.leading)
+            .frame(maxWidth: max(mapWidth * 0.62, 90), alignment: .leading)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 2)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 4))
     }
 
     /// Top bar mirroring the phone app: points/hour, points this round, zones held.
