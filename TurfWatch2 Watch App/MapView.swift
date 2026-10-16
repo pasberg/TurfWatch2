@@ -239,7 +239,6 @@ struct MapView: View {
     @ViewBuilder
     private var takeoverHUD: some View {
         if let zone = appState.currentZone {
-            let mine = appState.isMyZone(zone)
             VStack(spacing: 1) {
                 Text(zone.name)
                     .font(.system(size: 9, weight: .bold))
@@ -247,32 +246,20 @@ struct MapView: View {
                 if let end = appState.blockEndDate(for: zone) {
                     TimelineView(.periodic(from: .now, by: 1)) { context in
                         let remaining = max(0, end.timeIntervalSince(context.date))
-                        Label(
-                            "\(mine ? "Tagen – fri om" : "Blockerad") \(Self.mmss(remaining))",
-                            systemImage: "timer"
-                        )
-                        .font(.system(size: 8, weight: .semibold))
-                        .foregroundStyle(mine ? .green : .orange)
+                        Label("Kan tas om \(Self.mmss(remaining))", systemImage: "lock.fill")
+                            .font(.system(size: 8, weight: .semibold))
+                            .foregroundStyle(.orange)
                     }
                 } else {
-                    Text(takenSubtitle(for: zone, mine: mine))
-                        .font(.system(size: 8))
-                        .foregroundStyle(.secondary)
+                    Label("Kan tas nu", systemImage: "flag.fill")
+                        .font(.system(size: 8, weight: .semibold))
+                        .foregroundStyle(.green)
                 }
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
             .background(.ultraThinMaterial, in: Capsule())
         }
-    }
-
-    /// Subtitle when standing in a zone that isn't blocked.
-    private func takenSubtitle(for zone: TurfZone, mine: Bool) -> String {
-        let prefix = mine ? "Din zon" : (zone.currentOwner?.name ?? "Neutral")
-        if let ago = appState.lastTakenText(zone) {
-            return "\(prefix) · tagen \(ago)"
-        }
-        return prefix
     }
 
     /// Formats a duration as M:SS.
