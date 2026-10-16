@@ -133,6 +133,21 @@ struct MapView: View {
             .padding(.leading, edgeInset)
             .padding(.bottom, edgeInset)
 
+            // Always-visible diagnostics line (just under the stats header) so we
+            // can see the refresh state even when zones aren't empty.
+            if !appState.diagnostics.isEmpty {
+                Text(appState.diagnostics)
+                    .font(.system(size: 7))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 2)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 4))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .padding(.top, 30)
+                    .allowsHitTesting(false)
+            }
+
             if appState.nearbyZones.isEmpty {
                 VStack(spacing: 6) {
                     if appState.isLoadingZones {
@@ -147,12 +162,6 @@ struct MapView: View {
                             Task { await appState.refreshNearbyZones(force: true) }
                         }
                         .font(.caption2)
-                        if !appState.diagnostics.isEmpty {
-                            Text(appState.diagnostics)
-                                .font(.system(size: 7))
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.center)
-                        }
                     }
                 }
                 .padding(10)

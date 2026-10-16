@@ -186,6 +186,20 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
             return
         }
         let posStr = String(format: "pos %.3f,%.3f", loc.coordinate.latitude, loc.coordinate.longitude)
+
+        // If we've moved away from the zones we were showing (e.g. travelled to a
+        // new city), drop them so this area is evaluated fresh instead of silently
+        // keeping off-screen zones.
+        if !nearbyZones.isEmpty {
+            let anyNear = nearbyZones.contains {
+                (distanceTo($0) ?? .infinity) <= nearbyRadiusMeters
+            }
+            if !anyNear {
+                nearbyZones = []
+                usingSeedZones = false
+            }
+        }
+
         // Show bundled seed zones immediately so there's always something nearby —
         // even offline or while the live endpoint is rate-limited.
         if nearbyZones.isEmpty {
