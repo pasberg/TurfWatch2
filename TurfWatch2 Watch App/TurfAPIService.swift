@@ -28,8 +28,9 @@ class TurfAPIService {
         let status = http?.statusCode ?? 0
         if status == 200 { return }
         if status == 429 {
-            let retry = http?.value(forHTTPHeaderField: "Retry-After")
-            throw TurfError.networkError("För många anrop – vänta en stund" + (retry.map { " (vänta ~\($0)s)" } ?? ""))
+            // Retry-After may be seconds or an HTTP date; we only parse seconds.
+            let retry = http?.value(forHTTPHeaderField: "Retry-After").flatMap { TimeInterval($0) }
+            throw TurfError.rateLimited(retryAfter: retry)
         }
         throw TurfError.networkError("HTTP \(status)")
     }

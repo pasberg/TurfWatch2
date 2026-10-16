@@ -64,6 +64,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         nearbyZones = []
         allZones = []
         didAttemptZoneLoad = false
+        rateLimitedUntil = nil
         AppState.clearCachedZones()
         usingSeedZones = false
         errorMessage = nil
@@ -136,6 +137,9 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
     /// Set once we've tried a network load, so auto-triggers don't hammer the
     /// rate-limited all-zones endpoint; manual refresh (force) ignores it.
     private var didAttemptZoneLoad = false
+    /// While set and in the future, we're in a rate-limit cooldown and skip
+    /// network calls — retrying only extends Turf's limit and keeps us on seed.
+    private var rateLimitedUntil: Date?
 
     @MainActor
     func refreshNearbyZones(force: Bool = false) async {
@@ -152,56 +156,89 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
                 usingSeedZones = true
             }
         }
+
+        // Honour an active cooldown: show the remaining wait instead of firing
+        // another doomed request (which would just extend the rate limit).
+        if let until = rateLimitedUntil, Date() < until {
+            let secs = Int(until.timeIntervalSinceNow.rounded(.up))
+            zoneErrorMessage = "För många anrop – vänta ~\(secs) s"
+            return
+        }
+
         // Try the live flow once automatically; manual refresh (force) ignores it.
         if !force && didAttemptZoneLoad { return }
         didAttemptZoneLoad = true
         isLoadingZones = true
         zoneErrorMessage = nil
+        defer { isLoadingZones = false }
+
         do {
-            // 1. Load the lightweight zone index once (cache-first). The index
-            //    rarely changes, so even a manual refresh keeps the cached copy and
-            //    only re-POSTs details below — this avoids re-hitting the heavy,
-            //    rate-limited /zones/all endpoint on every retry.
+            // Decide which zones are "near me" using the lightest index available:
+            // a cached full index if we have one, otherwise the bundled seed zones.
+            // This lets us refresh live ownership through the LIGHT detail endpoint
+            // without hitting the heavy, rate-limited /zones/all on every refresh.
             if allZones.isEmpty {
                 if let cached = await Task.detached(priority: .userInitiated, operation: {
                        AppState.loadCachedZones(maxAge: AppState.zoneCacheMaxAge)
                    }).value {
                     allZones = cached
-                } else {
-                    let fresh = try await TurfAPIService.shared.fetchAllZones()
-                    allZones = fresh
-                    Task.detached(priority: .utility) { AppState.saveCachedZones(fresh) }
                 }
             }
+            let indexSource = allZones.isEmpty ? seedZones : allZones
+            var nearbyIds = await nearestZoneIds(from: indexSource, around: loc)
 
-            // 2. Pick the nearest zone ids (off the main thread).
-            let zones = allZones
-            let radius = nearbyRadiusMeters
-            let limit = maxNearbyZones
-            let nearbyIds: [Int] = await Task.detached(priority: .userInitiated) { () -> [Int] in
-                zones
-                    .compactMap { zone -> (Int, CLLocationDistance)? in
-                        let d = loc.distance(from: CLLocation(latitude: zone.latitude, longitude: zone.longitude))
-                        return d <= radius ? (zone.id, d) : nil
-                    }
-                    .sorted { $0.1 < $1.1 }
-                    .prefix(limit)
-                    .map { $0.0 }
-            }.value
+            // Only when neither a cached index nor the seed zones cover this area
+            // (e.g. the user is far from Frillesås) do we fall back to the heavy
+            // all-zones index to discover nearby ids.
+            if nearbyIds.isEmpty && allZones.isEmpty {
+                let fresh = try await TurfAPIService.shared.fetchAllZones()
+                allZones = fresh
+                Task.detached(priority: .utility) { AppState.saveCachedZones(fresh) }
+                nearbyIds = await nearestZoneIds(from: fresh, around: loc)
+            }
 
-            // 3. Fetch full details (polygon + owner) for just those, and sort by distance.
+            // Fetch fresh details (polygon + current owner) for the nearby zones.
             let detailed = try await TurfAPIService.shared.fetchZoneDetails(ids: nearbyIds)
             if !detailed.isEmpty {
                 nearbyZones = detailed.sorted {
                     (distanceTo($0) ?? .infinity) < (distanceTo($1) ?? .infinity)
                 }
                 usingSeedZones = false
+                rateLimitedUntil = nil
             }
+        } catch let error as TurfError {
+            handleZoneError(error)
+            // Keep the seed zones we already showed.
         } catch {
             zoneErrorMessage = error.localizedDescription
-            // Keep the seed zones we already showed.
         }
-        isLoadingZones = false
+    }
+
+    /// Records a failed zone load. For rate limits it also starts a cooldown so
+    /// we stop firing requests until the server's Retry-After has elapsed.
+    @MainActor
+    private func handleZoneError(_ error: TurfError) {
+        zoneErrorMessage = error.errorDescription
+        if case .rateLimited(let retry) = error {
+            let wait = retry.map { max($0, 5) } ?? 60
+            rateLimitedUntil = Date().addingTimeInterval(wait)
+        }
+    }
+
+    /// Nearest zone ids within range of a point, computed off the main thread.
+    private func nearestZoneIds(from zones: [TurfZone], around loc: CLLocation) async -> [Int] {
+        let radius = nearbyRadiusMeters
+        let limit = maxNearbyZones
+        return await Task.detached(priority: .userInitiated) { () -> [Int] in
+            zones
+                .compactMap { zone -> (Int, CLLocationDistance)? in
+                    let d = loc.distance(from: CLLocation(latitude: zone.latitude, longitude: zone.longitude))
+                    return d <= radius ? (zone.id, d) : nil
+                }
+                .sorted { $0.1 < $1.1 }
+                .prefix(limit)
+                .map { $0.0 }
+        }.value
     }
 
     /// Filters a zone set to those within range of a point, nearest first.

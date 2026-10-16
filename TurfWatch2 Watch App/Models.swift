@@ -114,12 +114,19 @@ enum TurfError: Error, LocalizedError {
     case userNotFound
     case networkError(String)
     case decodingError(String)
+    /// HTTP 429 — too many requests. Carries the server's Retry-After, if given.
+    case rateLimited(retryAfter: TimeInterval?)
 
     var errorDescription: String? {
         switch self {
         case .userNotFound: return "Användaren hittades inte"
         case .networkError(let msg): return "Nätverksfel: \(msg)"
         case .decodingError(let msg): return "Datafel: \(msg)"
+        case .rateLimited(let retry):
+            if let retry, retry > 0 {
+                return "För många anrop – vänta ~\(Int(retry.rounded())) s"
+            }
+            return "För många anrop – vänta en stund"
         }
     }
 }
