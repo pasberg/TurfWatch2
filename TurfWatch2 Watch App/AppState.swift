@@ -45,6 +45,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate, UNUserNot
         if let saved = UserDefaults.standard.string(forKey: usernameKey), !saved.isEmpty {
             username = saved
             isLoggedIn = true
+            UserDefaults(suiteName: Self.appGroup)?.set(saved, forKey: "username")
         }
     }
 
@@ -60,6 +61,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate, UNUserNot
         self.currentUser = user
         self.isLoggedIn = true
         requestNotificationAuth()
+        publishStatsToComplication()
     }
 
     func logout() {
@@ -469,9 +471,16 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate, UNUserNot
 
     // MARK: - Complication
 
-    /// Nudges the complication to refresh (it fetches its own data by username,
-    /// so no shared storage/App Group is needed).
+    /// App Group used to share the logged-in username with the complication.
+    /// Add this same App Group capability to BOTH targets in Xcode. Works in the
+    /// Simulator even on a free account; the complication falls back to its own
+    /// default if the group isn't configured.
+    static let appGroup = "group.com.pasberg.TurfWatch2"
+
+    /// Shares the current username with the complication and asks it to refresh.
+    /// The complication fetches its own stats from the API using this name.
     func publishStatsToComplication() {
+        UserDefaults(suiteName: Self.appGroup)?.set(username, forKey: "username")
         WidgetCenter.shared.reloadAllTimelines()
     }
 

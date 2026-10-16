@@ -1,8 +1,17 @@
 import WidgetKit
 import SwiftUI
 
-// MARK: - Ändra till ditt Turf-användarnamn
-private let kUsername = "Ventruce"
+// Reserv-användarnamn om App Group inte är konfigurerad (byt vid behov).
+private let kFallbackUsername = "Ventruce"
+
+/// Reads the username the app shared via the App Group, falling back to the
+/// constant above. Add the App Group `group.com.pasberg.TurfWatch2` to BOTH
+/// targets for this to pick up the logged-in user automatically.
+private func currentUsername() -> String {
+    let name = UserDefaults(suiteName: "group.com.pasberg.TurfWatch2")?
+        .string(forKey: "username") ?? ""
+    return name.isEmpty ? kFallbackUsername : name
+}
 
 // MARK: - Entry
 
@@ -41,7 +50,7 @@ private func fetchTurfUser(_ name: String) async -> TurfUserLite? {
 
 struct TurfProvider: TimelineProvider {
     func placeholder(in context: Context) -> TurfEntry {
-        TurfEntry(date: Date(), username: kUsername, pph: 24, points: 21692, zones: 6)
+        TurfEntry(date: Date(), username: currentUsername(), pph: 24, points: 21692, zones: 6)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (TurfEntry) -> Void) {
@@ -57,10 +66,11 @@ struct TurfProvider: TimelineProvider {
     }
 
     private func loadEntry() async -> TurfEntry {
-        let u = await fetchTurfUser(kUsername)
+        let name = currentUsername()
+        let u = await fetchTurfUser(name)
         return TurfEntry(
             date: Date(),
-            username: u?.name ?? kUsername,
+            username: u?.name ?? name,
             pph: u?.pointsPerHour ?? 0,
             points: u?.points ?? 0,
             zones: u?.zones?.count ?? 0
