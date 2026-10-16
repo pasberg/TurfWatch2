@@ -142,9 +142,7 @@ struct MapView: View {
                     } else {
                         Image(systemName: "mappin.slash")
                             .foregroundStyle(.secondary)
-                        Text(appState.zoneErrorMessage ?? "Inga zoner nära dig")
-                            .font(.caption2).foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
+                        emptyStateMessage
                         Button("Försök igen") {
                             Task { await appState.refreshNearbyZones(force: true) }
                         }
@@ -181,6 +179,24 @@ struct MapView: View {
             if appState.nearbyZones.isEmpty {
                 Task { await appState.refreshNearbyZones() }
             }
+        }
+    }
+
+    /// Centre empty-state message: a live countdown while rate-limited, otherwise
+    /// the last zone error or a default.
+    @ViewBuilder
+    private var emptyStateMessage: some View {
+        if let until = appState.rateLimitedUntil, until > Date() {
+            TimelineView(.periodic(from: .now, by: 1)) { context in
+                let remaining = max(0, Int(until.timeIntervalSince(context.date).rounded(.up)))
+                Text(remaining > 0 ? "För många anrop – vänta \(remaining)s" : "Försök igen nu")
+                    .font(.caption2).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+        } else {
+            Text(appState.zoneErrorMessage ?? "Inga sparade zoner här – live krävs")
+                .font(.caption2).foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
         }
     }
 
