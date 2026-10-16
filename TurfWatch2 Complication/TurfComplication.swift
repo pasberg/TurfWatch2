@@ -6,8 +6,8 @@ import AppIntents
 // settings; no App Group / shared storage needed).
 
 struct TurfConfigIntent: WidgetConfigurationIntent {
-    static var title: LocalizedStringResource = "Turf"
-    static var description = IntentDescription("Visa statistik för ett Turf-användarnamn.")
+    static var title: LocalizedStringResource { "Turf" }
+    static var description: IntentDescription { "Visa statistik för ett Turf-användarnamn." }
 
     @Parameter(title: "Användarnamn", default: "Ventruce")
     var username: String
@@ -49,15 +49,18 @@ private func fetchTurfUser(_ name: String) async -> TurfUserLite? {
 // MARK: - Provider
 
 struct TurfProvider: AppIntentTimelineProvider {
-    func placeholder(in context: Context) -> TurfEntry {
+    typealias Entry = TurfEntry
+    typealias Intent = TurfConfigIntent
+
+    func placeholder(in context: TimelineProviderContext) -> TurfEntry {
         TurfEntry(date: Date(), username: "Ventruce", pph: 24, points: 21692, zones: 6)
     }
 
-    func snapshot(for configuration: TurfConfigIntent, in context: Context) async -> TurfEntry {
+    func snapshot(for configuration: TurfConfigIntent, in context: TimelineProviderContext) async -> TurfEntry {
         await entry(for: configuration.username)
     }
 
-    func timeline(for configuration: TurfConfigIntent, in context: Context) async -> Timeline<TurfEntry> {
+    func timeline(for configuration: TurfConfigIntent, in context: TimelineProviderContext) async -> Timeline<TurfEntry> {
         let e = await entry(for: configuration.username)
         let next = Calendar.current.date(byAdding: .minute, value: 20, to: Date()) ?? Date().addingTimeInterval(1200)
         return Timeline(entries: [e], policy: .after(next))
