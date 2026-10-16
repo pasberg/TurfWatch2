@@ -64,6 +64,7 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
         nearbyZones = []
         allZones = []
         didAttemptZoneLoad = false
+        didTryFullIndex = false
         rateLimitedUntil = nil
         consecutiveRateLimits = 0
         AppState.clearCachedZones()
@@ -146,6 +147,9 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
     /// Set once we've tried a network load, so auto-triggers don't hammer the
     /// rate-limited all-zones endpoint; manual refresh (force) ignores it.
     private var didAttemptZoneLoad = false
+    /// Guards the once-per-session attempt to upgrade from the bundled index to
+    /// the full live /zones/all index.
+    private var didTryFullIndex = false
     /// While set and in the future, we're in a rate-limit cooldown and skip
     /// network calls — retrying only extends Turf's limit and keeps us on seed.
     /// Published so the UI can show a live countdown.
@@ -238,6 +242,18 @@ class AppState: NSObject, ObservableObject, CLLocationManagerDelegate {
                 usingSeedZones = false
                 rateLimitedUntil = nil
                 consecutiveRateLimits = 0
+            }
+
+            // The light path worked using the bundled index. Try once per session
+            // to upgrade to the full live index so areas the bundle covers only
+            // sparsely (e.g. central Göteborg) fill in on the next refresh. Its
+            // failure must not disturb the data we just loaded, so it's silent.
+            if allZones.isEmpty && !detailed.isEmpty && !didTryFullIndex {
+                didTryFullIndex = true
+                if let fresh = try? await TurfAPIService.shared.fetchAllZones(), !fresh.isEmpty {
+                    allZones = fresh
+                    Task.detached(priority: .utility) { AppState.saveCachedZones(fresh) }
+                }
             }
         } catch let error as TurfError {
             handleZoneError(error)
